@@ -32,8 +32,8 @@ public interface MemberRepository extends Neo4jRepository<Member, Long> {
      */
     @Query("MATCH (start:Member), (end:Member) " +
             "WHERE id(start) = $startId AND id(end) = $endId " +
-            "MATCH path = shortestPath((start)-[:FOLLOWS*..6]->(end) " +
-            "RETURN path")
+            "MATCH path = shortestPath((start)-[:FOLLOWS*..6]->(end)) " +
+            "RETURN nodes(path)")
     List<Member> findPathById(@Param("startId") Long startId,
                               @Param("endId") Long endId);
 }
