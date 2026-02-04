@@ -22,6 +22,15 @@ public class MemberController {
         return ResponseEntity.ok(MemberResponse.from(response));
     }
 
+    @GetMapping("/{name}")
+    public ResponseEntity<List<Member>> findMember(
+            @PathVariable String name,
+            @RequestParam(required = false) Integer admissionYear,
+            @RequestParam(required = false) String majorName
+    ) {
+        return ResponseEntity.ok(memberService.search(name, admissionYear, majorName));
+    }
+
     @GetMapping("/path")
     public ResponseEntity<List<Member>> findPath(
             @RequestParam Long startId,

@@ -21,7 +21,7 @@ public interface MemberRepository extends Neo4jRepository<Member, Long> {
             "AND ($majorName IS NULL OR mj.majorName = $majorName) " +
             "RETURN m")
     List<Member> searchMembers(@Param("keyword") String keyword,
-                                      @Param("admissionYear") int admissionYear,
+                                      @Param("admissionYear") Integer admissionYear,
                                       @Param("majorName") String majorName);
 
     /**

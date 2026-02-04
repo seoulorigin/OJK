@@ -35,6 +35,11 @@ public class MemberService {
     }
 
     @Transactional
+    public List<Member> search(String name, Integer admissionYear, String majorName) {
+        return memberRepository.searchMembers(name, admissionYear, majorName);
+    }
+
+    @Transactional
     public List<Member> getPath(Long startId, Long endId) {
         List<Member> path = memberRepository.findPathById(startId, endId);
         if (path.isEmpty()) {
