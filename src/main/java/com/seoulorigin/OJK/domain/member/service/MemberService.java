@@ -1,5 +1,7 @@
 package com.seoulorigin.OJK.domain.member.service;
 
+import com.seoulorigin.OJK.domain.major.Major;
+import com.seoulorigin.OJK.domain.member.dto.MemberSignupRequest;
 import com.seoulorigin.OJK.domain.member.entity.Member;
 import com.seoulorigin.OJK.domain.member.repository.MemberRepository;
 import jakarta.transaction.Transactional;
@@ -12,6 +14,25 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MemberService {
     private final MemberRepository memberRepository;
+
+    @Transactional
+    public Member signup(MemberSignupRequest request) {
+        Member member = new Member();
+        member.setEmail(request.email());
+        member.setPassword(request.password()); // 실제로는 암호화가 필요합니다.
+        member.setName(request.name());
+        member.setAdmissionYear(request.admissionYear());
+        member.setInstagramId(request.instagramId());
+        member.setBio(request.bio());
+
+        // 전공(Major) 처리 로직 (간단 버전)
+        if (request.majorName() != null) {
+            Major major = new Major(request.majorName(), request.college());
+            member.setMajor(major);
+        }
+
+        return memberRepository.save(member);
+    }
 
     @Transactional
     public List<Member> getPath(Long startId, Long endId) {

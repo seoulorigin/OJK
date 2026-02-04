@@ -1,13 +1,12 @@
 package com.seoulorigin.OJK.domain.member.Controller;
 
+import com.seoulorigin.OJK.domain.member.dto.MemberResponse;
+import com.seoulorigin.OJK.domain.member.dto.MemberSignupRequest;
 import com.seoulorigin.OJK.domain.member.entity.Member;
 import com.seoulorigin.OJK.domain.member.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -16,6 +15,12 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MemberController {
     private final MemberService memberService;
+
+    @PostMapping("/signup")
+    public ResponseEntity<MemberResponse> signup(@RequestBody MemberSignupRequest request) {
+        Member response = memberService.signup(request);
+        return ResponseEntity.ok(MemberResponse.from(response));
+    }
 
     @GetMapping("/path")
     public ResponseEntity<List<Member>> findPath(

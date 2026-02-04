@@ -1,6 +1,6 @@
 package com.seoulorigin.OJK.domain.member.entity;
 
-import com.seoulorigin.OJK.domain.Major;
+import com.seoulorigin.OJK.domain.major.Major;
 import com.seoulorigin.OJK.domain.common.BaseTimeEntity;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -25,6 +25,7 @@ public class Member extends BaseTimeEntity {
     private String name;
     private int admissionYear;
     private String email;
+    private String password;
 
     // [선택]
     private String instagramId;

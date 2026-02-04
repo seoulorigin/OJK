@@ -1,13 +1,13 @@
-package com.seoulorigin.OJK.domain;
+package com.seoulorigin.OJK.domain.major;
 
-import lombok.Builder;
+import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 
 @Node("Major")
-@Setter
+@Setter @Getter
 public class Major {
     @Id @GeneratedValue
     private Long id;
