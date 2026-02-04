@@ -33,7 +33,8 @@ public interface MemberRepository extends Neo4jRepository<Member, Long> {
     @Query("MATCH (start:Member), (end:Member) " +
             "WHERE id(start) = $startId AND id(end) = $endId " +
             "MATCH path = shortestPath((start)-[:FOLLOWS*..6]->(end)) " +
-            "RETURN nodes(path)")
+            "UNWIND nodes(path) AS n " +  // 리스트를 낱개로 풉니다
+            "RETURN n")
     List<Member> findPathById(@Param("startId") Long startId,
                               @Param("endId") Long endId);
 }
