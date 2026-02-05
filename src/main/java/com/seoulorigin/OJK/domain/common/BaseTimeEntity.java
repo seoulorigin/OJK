@@ -3,6 +3,7 @@ package com.seoulorigin.OJK.domain.common;
 import lombok.Getter;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
 
 import java.time.LocalDateTime;
 
@@ -11,6 +12,6 @@ public abstract class BaseTimeEntity {
     @CreatedDate
     private LocalDateTime createdAt;
 
-    @LastModifiedBy
+    @LastModifiedDate
     private LocalDateTime updateAt;
 }

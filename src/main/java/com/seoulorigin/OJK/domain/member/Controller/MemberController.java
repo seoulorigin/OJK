@@ -23,12 +23,16 @@ public class MemberController {
     }
 
     @GetMapping("/{name}")
-    public ResponseEntity<List<Member>> findMember(
+    public ResponseEntity<List<MemberResponse>> findMember(
             @PathVariable String name,
             @RequestParam(required = false) Integer admissionYear,
             @RequestParam(required = false) String majorName
     ) {
-        return ResponseEntity.ok(memberService.search(name, admissionYear, majorName));
+        List<Member> members = memberService.search(name, admissionYear, majorName);
+        List<MemberResponse> responses = members.stream()
+                .map(MemberResponse::from)
+                .toList();
+        return ResponseEntity.ok(responses);
     }
 
     @GetMapping("/path")

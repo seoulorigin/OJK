@@ -25,11 +25,8 @@ public class MemberService {
         member.setInstagramId(request.instagramId());
         member.setBio(request.bio());
 
-        // 전공(Major) 처리 로직 (간단 버전)
-        if (request.majorName() != null) {
-            Major major = new Major(request.majorName(), request.college());
-            member.setMajor(major);
-        }
+        Major major = new Major(request.majorName(), request.college());
+        member.setMajor(major);
 
         return memberRepository.save(member);
     }

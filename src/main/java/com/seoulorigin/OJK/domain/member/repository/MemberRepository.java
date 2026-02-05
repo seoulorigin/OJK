@@ -19,7 +19,7 @@ public interface MemberRepository extends Neo4jRepository<Member, Long> {
             "(m.name CONTAINS $keyword OR m.instagramId CONTAINS $keyword) " +
             "AND ($admissionYear IS NULL OR m.admissionYear = $admissionYear) " +
             "AND ($majorName IS NULL OR mj.majorName = $majorName) " +
-            "RETURN m")
+            "RETURN m, mj")
     List<Member> searchMembers(@Param("keyword") String keyword,
                                       @Param("admissionYear") Integer admissionYear,
                                       @Param("majorName") String majorName);
