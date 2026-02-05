@@ -14,12 +14,12 @@ public interface MemberRepository extends Neo4jRepository<Member, Long> {
      * @param admissionYear 학번 필터 (null일 경우 전체 학번)
      * @param majorName 전공 필터 (null일 경우 전체 전공)
      */
-    @Query("MATCH (m:Member)-[:BELONGS_TO]->(mj:Major) " +
+    @Query("MATCH (m:Member)-[r:BELONGS_TO]->(mj:Major) " +
             "WHERE " +
             "(m.name CONTAINS $keyword OR m.instagramId CONTAINS $keyword) " +
             "AND ($admissionYear IS NULL OR m.admissionYear = $admissionYear) " +
             "AND ($majorName IS NULL OR mj.majorName = $majorName) " +
-            "RETURN m, mj")
+            "RETURN m, r, mj")
     List<Member> searchMembers(@Param("keyword") String keyword,
                                       @Param("admissionYear") Integer admissionYear,
                                       @Param("majorName") String majorName);

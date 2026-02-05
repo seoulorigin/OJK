@@ -17,7 +17,7 @@ public record MemberSignupRequest(
         @NotBlank String email,
         @NotBlank String password,
         @NotBlank String name,
-        @NotBlank int admissionYear,
+        @NotBlank Integer admissionYear,
         @NotBlank String college,
         @NotBlank String majorName,
         String instagramId,
