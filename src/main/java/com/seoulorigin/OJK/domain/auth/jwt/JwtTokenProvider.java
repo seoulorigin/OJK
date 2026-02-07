@@ -31,7 +31,7 @@ public class JwtTokenProvider {
                 .claim("id", id)
                 .setIssuedAt(now)
                 .setExpiration(validity)
-                .signWith(key, SignatureAlgorithm.ES256)
+                .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
 }

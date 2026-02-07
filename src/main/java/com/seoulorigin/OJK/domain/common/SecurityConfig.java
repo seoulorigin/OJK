@@ -37,7 +37,7 @@ public class SecurityConfig {
                 // 요청 주소별 권한 설정
                 .authorizeHttpRequests(authorize -> authorize
                         // "/api/auth/**" 로 시작하는 모든 요청(로그인, 가입, 이메일)은 누구나 접근 가능
-                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/auth/**", "/error").permitAll()
                         // 그 외의 모든 요청은 인증된 회원만 접근 가능
                         .anyRequest().authenticated()
                 );

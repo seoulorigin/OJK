@@ -50,5 +50,5 @@ public interface MemberRepository extends Neo4jRepository<Member, Long> {
             "RETURN following")
     List<Member> findFollowingsById(@Param("memberId") Long memberId);
 
-    Member findByEmail(String email);
+    Optional<Member> findByEmail(String email);
 }

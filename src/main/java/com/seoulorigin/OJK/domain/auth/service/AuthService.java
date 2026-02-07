@@ -21,7 +21,8 @@ public class AuthService {
 
     @Transactional
     public TokenResponse login(LoginRequest request) {
-        Member member = memberRepository.findByEmail(request.email());
+        Member member = memberRepository.findByEmail(request.email())
+                .orElseThrow(() -> new IllegalArgumentException("가입되지 않은 이메일."));
         if (!passwordEncoder.matches(request.password(), member.getPassword()))
             throw new IllegalArgumentException("Wrong Password.");
         String token = jwtTokenProvider.createToken(member.getId(), member.getEmail());

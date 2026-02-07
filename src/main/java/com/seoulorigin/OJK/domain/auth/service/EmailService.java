@@ -12,7 +12,7 @@ import java.util.Random;
 @RequiredArgsConstructor
 public class EmailService {
     private final JavaMailSender javaMailSender;
-    private static final String SENDER_EMAIL = "seoulorigin@gamil.com";
+    private static final String SENDER_EMAIL = "seoulorigin@gmail.com";
 
     public String createNumber() {
         Random random = new Random();
