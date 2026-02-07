@@ -44,19 +44,5 @@ public class MemberController {
         return ResponseEntity.ok(memberService.getPath(startId, endId));
     }
 
-    @GetMapping("/{id}/followerList")
-    public ResponseEntity<List<MemberResponse>> getFollowerList(@PathVariable Long id) {
-        List<Member> members = memberService.getFollowers(id);
-        List<MemberResponse> responses = members.stream()
-                .map(MemberResponse::from).toList();
-        return ResponseEntity.ok(responses);
-    }
 
-    @PostMapping("/{id}/follwer")
-    public ResponseEntity<String> followerMember(
-            @PathVariable Long id,
-            @RequestParam Long targetId) {
-        memberService.follow(id, targetId);
-        return ResponseEntity.ok("Success!");
-    }
 }

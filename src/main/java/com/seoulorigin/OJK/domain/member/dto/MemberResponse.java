@@ -9,7 +9,6 @@ public record MemberResponse(
         String email,
         String name,
         int admissionYear,
-        Set<Member> followers,
         String college,
         String majorName,
         String instagramId,
@@ -21,7 +20,6 @@ public record MemberResponse(
                 member.getEmail(),
                 member.getName(),
                 member.getAdmissionYear(),
-                member.getFollowers(),
                 member.getMajor() != null ? member.getMajor().getCollege() : null, // null 체크 추가
                 member.getMajor() != null ? member.getMajor().getMajorName() : null, // null 체크 추가
                 member.getInstagramId(),
