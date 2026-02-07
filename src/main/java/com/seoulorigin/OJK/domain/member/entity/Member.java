@@ -38,6 +38,8 @@ public class Member extends BaseTimeEntity {
 
     @Relationship(type = "FOLLOWS", direction = Relationship.Direction.OUTGOING)
     private Set<Member> followings = new HashSet<>();
+    @Relationship(type = "FOLLOWS", direction = Relationship.Direction.INCOMING)
+    private Set<Member> followers = new HashSet<>();
 
     public void follow(Member target) {
         if (target != null) {

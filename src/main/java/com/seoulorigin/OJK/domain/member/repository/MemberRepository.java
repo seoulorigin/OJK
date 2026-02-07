@@ -23,7 +23,6 @@ public interface MemberRepository extends Neo4jRepository<Member, Long> {
     List<Member> searchMembers(@Param("keyword") String keyword,
                                       @Param("admissionYear") Integer admissionYear,
                                       @Param("majorName") String majorName);
-
     /**
      * 최단 경로 탐색
      * @param startId 본인
@@ -37,4 +36,15 @@ public interface MemberRepository extends Neo4jRepository<Member, Long> {
             "RETURN n")
     List<Member> findPathById(@Param("startId") Long startId,
                               @Param("endId") Long endId);
+
+    @Query("MATCH (me:Member)<-[r:FOLLOWS]-(follower:Member) " +
+            "WHERE id(me) = $memberId " +
+            "MATCH (follower)-[b:BELONGS_TO]->(mj:Major) " +
+            "RETURN follower, b, r, mj")
+    List<Member> findFollowersById(@Param("memberId") Long memberId);
+
+    @Query("MATCH (me:Member)-[:FOLLOWS]->(following:Member) " +
+            "WHERE id(me) = $memberId " +
+            "RETURN following")
+    List<Member> findFollowingsById(@Param("memberId") Long memberId);
 }

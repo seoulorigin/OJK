@@ -1,6 +1,7 @@
 package com.seoulorigin.OJK.domain.member.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 /**
  * 회원가입 요청
@@ -17,7 +18,7 @@ public record MemberSignupRequest(
         @NotBlank String email,
         @NotBlank String password,
         @NotBlank String name,
-        @NotBlank Integer admissionYear,
+        @NotNull Integer admissionYear,
         @NotBlank String college,
         @NotBlank String majorName,
         String instagramId,
