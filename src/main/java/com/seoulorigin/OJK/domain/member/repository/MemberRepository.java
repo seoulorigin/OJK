@@ -1,11 +1,13 @@
 package com.seoulorigin.OJK.domain.member.repository;
 
 import com.seoulorigin.OJK.domain.member.entity.Member;
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.query.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface MemberRepository extends Neo4jRepository<Member, Long> {
     /**
@@ -47,4 +49,6 @@ public interface MemberRepository extends Neo4jRepository<Member, Long> {
             "WHERE id(me) = $memberId " +
             "RETURN following")
     List<Member> findFollowingsById(@Param("memberId") Long memberId);
+
+    Member findByEmail(String email);
 }
