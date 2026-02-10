@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  # [1] 기존에 쓰시던 Neo4j
+  neo4j:
+    image: neo4j:5.15.0 # 또는 사용 중인 버전
+    container_name: ojk-neo4j
+    ports:
+      - "7474:7474" # HTTP
+      - "7687:7687" # Bolt (Java 연결용)
+    environment:
+      - NEO4J_AUTH=neo4j/password1234 # 사용 중인 비번으로 변경
+    volumes:
+      - ./data/neo4j:/data # 데이터 날아가지 않게 저장
+
+  # [2] 새로 추가할 Redis
+  redis:
+    image: redis:alpine
+    container_name: ojk-redis
+    ports:
+      - "6379:6379" # Redis 기본 포트
+    volumes:
+      - ./data/redis:/data

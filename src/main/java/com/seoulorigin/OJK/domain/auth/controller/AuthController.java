@@ -6,10 +6,9 @@ import com.seoulorigin.OJK.domain.auth.dto.LoginRequest;
 import com.seoulorigin.OJK.domain.auth.dto.TokenResponse;
 import com.seoulorigin.OJK.domain.auth.service.AuthService;
 import com.seoulorigin.OJK.domain.auth.service.EmailService;
-import com.seoulorigin.OJK.domain.auth.service.VerificationStore;
+import com.seoulorigin.OJK.domain.auth.repository.VerificationStore;
 import com.seoulorigin.OJK.domain.member.dto.MemberResponse;
 import com.seoulorigin.OJK.domain.member.dto.MemberSignupRequest;
-import com.seoulorigin.OJK.domain.member.repository.MemberRepository;
 import com.seoulorigin.OJK.domain.member.service.MemberService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +25,6 @@ public class AuthController {
     private final EmailService emailService;
     private final VerificationStore verificationStore;
     private final AuthService authService;
-    private final MemberRepository memberRepository;
     private final MemberService memberService;
 
     @PostMapping("/email/send")

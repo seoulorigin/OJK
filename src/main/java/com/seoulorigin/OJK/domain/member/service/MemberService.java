@@ -1,6 +1,6 @@
 package com.seoulorigin.OJK.domain.member.service;
 
-import com.seoulorigin.OJK.domain.auth.service.VerificationStore;
+import com.seoulorigin.OJK.domain.auth.repository.VerificationStore;
 import com.seoulorigin.OJK.domain.major.Major;
 import com.seoulorigin.OJK.domain.member.dto.MemberSignupRequest;
 import com.seoulorigin.OJK.domain.member.entity.Member;

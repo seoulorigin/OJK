@@ -1,11 +1,13 @@
-package com.seoulorigin.OJK.domain.auth.service;
+package com.seoulorigin.OJK.domain.auth.repository;
 
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-@Component
+// TODO: 이메일 인증 토큰 및 인증 번호 저장 -> Redis
+
+@Component // 현재는 유틸리티 성격 저장소
 public class VerificationStore {
     private final Map<String, String> codeStore = new ConcurrentHashMap<>();
     private final Map<String, Boolean> statusStore = new ConcurrentHashMap<>();
