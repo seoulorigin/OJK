@@ -1,4 +1,4 @@
-package com.seoulorigin.OJK.domain.member.Controller;
+package com.seoulorigin.OJK.domain.member.controller;
 
 import com.seoulorigin.OJK.domain.member.dto.MemberResponse;
 import com.seoulorigin.OJK.domain.member.dto.MemberSignupRequest;
@@ -6,6 +6,7 @@ import com.seoulorigin.OJK.domain.member.entity.Member;
 import com.seoulorigin.OJK.domain.member.service.MemberService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,7 +21,9 @@ public class MemberController {
     @PostMapping("/signup")
     public ResponseEntity<MemberResponse> signup(@RequestBody @Valid MemberSignupRequest request) {
         Member response = memberService.signup(request);
-        return ResponseEntity.ok(MemberResponse.from(response));
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(MemberResponse.from(response));
     }
 
     @GetMapping("/{name}")
