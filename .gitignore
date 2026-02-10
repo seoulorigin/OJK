@@ -39,3 +39,8 @@ out/
 ### Security (민감 정보 무시) ###
 src/main/resources/application-secret.properties
 application-secret.properties
+
+# Docker Data
+data/
+data/neo4j/
+data/redis/
