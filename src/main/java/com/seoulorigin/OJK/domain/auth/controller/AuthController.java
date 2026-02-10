@@ -39,6 +39,12 @@ public class AuthController {
 
     @PostMapping("/email/verify")
     public ResponseEntity<String> verifyEmail(@RequestBody @Valid EmailVerificationRequest request) {
+        // [테스트용]
+        if ("000000".equals(request.code())) {
+            verificationStore.verify(request.email());
+            return ResponseEntity.ok("개발자 프리패스 인증완료.");
+        }
+
         boolean verified = verificationStore.verifyCode(request.email(), request.code());
         if (verified) {
             return ResponseEntity.ok("인증완료.");
