@@ -1,4 +1,4 @@
-package com.seoulorigin.OJK.domain.major;
+package com.seoulorigin.OJK.domain.major.entity;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;

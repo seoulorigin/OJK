@@ -1,6 +1,6 @@
 package com.seoulorigin.OJK.domain.member.entity;
 
-import com.seoulorigin.OJK.domain.major.Major;
+import com.seoulorigin.OJK.domain.major.entity.Major;
 import com.seoulorigin.OJK.domain.common.BaseTimeEntity;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

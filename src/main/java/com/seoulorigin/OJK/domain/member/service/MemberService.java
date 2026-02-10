@@ -1,7 +1,8 @@
 package com.seoulorigin.OJK.domain.member.service;
 
 import com.seoulorigin.OJK.domain.auth.repository.VerificationStore;
-import com.seoulorigin.OJK.domain.major.Major;
+import com.seoulorigin.OJK.domain.major.entity.Major;
+import com.seoulorigin.OJK.domain.major.repository.MajorRepository;
 import com.seoulorigin.OJK.domain.member.dto.MemberSignupRequest;
 import com.seoulorigin.OJK.domain.member.entity.Member;
 import com.seoulorigin.OJK.domain.member.repository.MemberRepository;
@@ -18,6 +19,7 @@ public class MemberService {
     private final MemberRepository memberRepository;
     private final VerificationStore verificationStore;
     private final PasswordEncoder passwordEncoder;
+    private final MajorRepository majorRepository;
 
     @Transactional
     public Member signup(MemberSignupRequest request) {
@@ -36,7 +38,8 @@ public class MemberService {
         member.setInstagramId(request.instagramId());
         member.setBio(request.bio());
 
-        Major major = new Major(request.majorName(), request.college());
+        Major major = majorRepository.findByMajorName(request.majorName())
+                        .orElseGet(() -> new Major(request.majorName(), request.college()));
         member.setMajor(major);
 
         verificationStore.remove(request.email());
