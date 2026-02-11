@@ -2,6 +2,7 @@ package com.seoulorigin.OJK.global.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -36,11 +37,14 @@ public class SecurityConfig {
 
                 // 요청 주소별 권한 설정
                 .authorizeHttpRequests(authorize -> authorize
-                        // "/api/auth/**" 로 시작하는 모든 요청(로그인, 가입, 이메일)은 누구나 접근 가능
-                        .requestMatchers("/api/auth/**", "/error").permitAll()
-                        .requestMatchers("/api/member/signup").permitAll()
-                        // 그 외의 모든 요청은 인증된 회원만 접근 가능
-                        .anyRequest().authenticated()
+//                        .requestMatchers("/", "/index.html", "/static/**").permitAll()
+//                        // "/api/auth/**" 로 시작하는 모든 요청(로그인, 가입, 이메일)은 누구나 접근 가능
+//                        .requestMatchers("/api/auth/**", "/error").permitAll()
+//                        .requestMatchers("/api/member/signup").permitAll()
+//                        .requestMatchers(HttpMethod.GET, "/api/member/**").permitAll()
+//                        // 그 외의 모든 요청은 인증된 회원만 접근 가능
+//                        .anyRequest().authenticated()
+                                .anyRequest().permitAll()
                 );
 
         return http.build();

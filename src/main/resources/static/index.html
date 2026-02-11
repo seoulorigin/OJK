@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>오작교(OJK) API 테스터</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 900px; margin: 0 auto; padding: 20px; background-color: #f4f4f9; }
+        h1, h2 { color: #333; text-align: center; }
+        .card { background: white; padding: 20px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .hidden { display: none; }
+        input, select, button { padding: 10px; margin: 5px 0; width: 100%; box-sizing: border-box; border: 1px solid #ddd; border-radius: 4px; }
+        button { background-color: #5c6bc0; color: white; border: none; cursor: pointer; font-weight: bold; }
+        button:hover { background-color: #3f51b5; }
+        button.secondary { background-color: #eee; color: #333; }
+        button.path-btn { background-color: #ff9800; }
+        button.path-btn:hover { background-color: #f57c00; }
+        .row { display: flex; gap: 10px; }
+        pre { background: #333; color: #0f0; padding: 10px; border-radius: 4px; overflow-x: auto; font-size: 12px; }
+        .result-item { border-bottom: 1px solid #eee; padding: 10px 0; display: flex; justify-content: space-between; align-items: center; }
+        .path-result { margin-top: 10px; padding: 10px; background-color: #e3f2fd; border-radius: 4px; color: #0d47a1; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<h1>🌉 오작교 API 테스터</h1>
+
+<div id="auth-section">
+    <div class="card">
+        <h2>1. 이메일 인증 & 가입</h2>
+        <input type="email" id="signup-email" placeholder="학교 이메일 (예: test@dankook.ac.kr)" value="test@dankook.ac.kr">
+        <div class="row">
+            <button onclick="sendEmail()">인증번호 발송</button>
+            <button class="secondary" onclick="verifyEmail()">개발자 프리패스(000000)</button>
+        </div>
+        <hr>
+        <input type="text" id="signup-name" placeholder="이름" value="홍길동">
+        <input type="password" id="signup-pw" placeholder="비밀번호" value="1234">
+        <div class="row">
+            <input type="number" id="signup-year" placeholder="학번(2024)" value="2024">
+            <input type="text" id="signup-college" placeholder="단과대(공과대학)" value="공과대학">
+        </div>
+        <input type="text" id="signup-major" placeholder="전공(소프트웨어학과)" value="소프트웨어학과">
+        <button onclick="signup()">회원가입 하기</button>
+    </div>
+
+    <div class="card">
+        <h2>2. 로그인</h2>
+        <input type="email" id="login-email" placeholder="이메일" value="test@dankook.ac.kr">
+        <input type="password" id="login-pw" placeholder="비밀번호" value="1234">
+        <button onclick="login()">로그인</button>
+    </div>
+</div>
+
+<div id="main-section" class="hidden">
+    <div class="card" style="background: #e8eaf6; border: 1px solid #c5cae9;">
+        <h3>👋 환영합니다, <span id="user-name-display"></span>님!</h3>
+        <p>내 ID: <span id="my-id-display"></span> | 토큰 보유중</p>
+        <button class="secondary" onclick="logout()">로그아웃</button>
+    </div>
+
+    <div class="card">
+        <h2>3. 친구 검색 & 팔로우 & 경로탐색</h2>
+        <div class="row">
+            <input type="text" id="search-keyword" placeholder="이름으로 검색">
+            <button onclick="searchMember()">검색</button>
+        </div>
+        <div id="search-results"></div>
+        <div id="path-display" class="hidden path-result"></div>
+    </div>
+
+    <div class="card">
+        <h2>4. API 응답 로그</h2>
+        <pre id="api-log">API 요청 대기중...</pre>
+    </div>
+</div>
+
+<script>
+    let accessToken = null;
+    let myId = null;
+
+    const API_BASE = 'http://localhost:8080/api';
+
+    // --- 1. 인증 관련 함수 ---
+    async function sendEmail() {
+        const email = document.getElementById('signup-email').value;
+        callApi('/auth/email/send', 'POST', { email });
+    }
+
+    async function verifyEmail() {
+        const email = document.getElementById('signup-email').value;
+        callApi('/auth/email/verify', 'POST', { email, code: '000000' });
+    }
+
+    async function signup() {
+        const data = {
+            email: document.getElementById('signup-email').value,
+            password: document.getElementById('signup-pw').value,
+            name: document.getElementById('signup-name').value,
+            admissionYear: parseInt(document.getElementById('signup-year').value),
+            college: document.getElementById('signup-college').value,
+            majorName: document.getElementById('signup-major').value,
+            bio: "테스트 계정입니다."
+        };
+        callApi('/member/signup', 'POST', data);
+    }
+
+    async function login() {
+        const data = {
+            email: document.getElementById('login-email').value,
+            password: document.getElementById('login-pw').value
+        };
+
+        const result = await callApi('/auth/login', 'POST', data);
+        if (result && result.accessToken) {
+            accessToken = result.accessToken;
+
+            const payload = JSON.parse(atob(accessToken.split('.')[1]));
+            myId = payload.id;
+            const email = payload.sub;
+
+            document.getElementById('auth-section').classList.add('hidden');
+            document.getElementById('main-section').classList.remove('hidden');
+            document.getElementById('my-id-display').innerText = myId;
+            document.getElementById('user-name-display').innerText = email;
+
+            log(`로그인 성공! Token 저장됨. (My ID: ${myId})`);
+        }
+    }
+
+    function logout() {
+        accessToken = null;
+        myId = null;
+        location.reload();
+    }
+
+    // --- 2. 회원 기능 함수 ---
+    async function searchMember() {
+        const keyword = document.getElementById('search-keyword').value;
+        const data = await callApi(`/member/${keyword}`, 'GET');
+
+        const list = document.getElementById('search-results');
+        list.innerHTML = '';
+        document.getElementById('path-display').classList.add('hidden'); // 기존 경로 숨김
+
+        if (data && data.length > 0) {
+            data.forEach(member => {
+                const isMe = (member.id === myId);
+
+                let buttonsHtml = '';
+                if (!isMe) {
+                    buttonsHtml = `
+                            <div class="row" style="gap:5px;">
+                                <button onclick="followUser(${member.id})" style="font-size:12px; padding:5px;">팔로우</button>
+                                <button class="path-btn" onclick="checkPath(${member.id}, '${member.name}')" style="font-size:12px; padding:5px;">경로 확인</button>
+                            </div>
+                        `;
+                } else {
+                    buttonsHtml = '<span style="color:blue; font-weight:bold;">(나)</span>';
+                }
+
+                const div = document.createElement('div');
+                div.className = 'result-item';
+                div.innerHTML = `
+                        <div>
+                            <strong>${member.name}</strong> (${member.majorName}, ${member.admissionYear})<br>
+                            <small>${member.email}</small>
+                        </div>
+                        <div>
+                            ${buttonsHtml}
+                        </div>
+                    `;
+                list.appendChild(div);
+            });
+        } else {
+            list.innerHTML = '<p>검색 결과가 없습니다.</p>';
+        }
+    }
+
+    async function followUser(targetId) {
+        if (!confirm(`정말 팔로우 하시겠습니까? (ID: ${targetId})`)) return;
+        await callApi(`/member/${myId}/follow/${targetId}`, 'POST');
+        alert("팔로우 성공!");
+    }
+
+    // [추가된 기능] 최단 경로 확인
+    async function checkPath(targetId, targetName) {
+        const pathDiv = document.getElementById('path-display');
+        pathDiv.innerHTML = '경로 계산 중... ⏳';
+        pathDiv.classList.remove('hidden');
+
+        // API 호출: /api/member/path?startId={myId}&endId={targetId}
+        const data = await callApi(`/member/path?startId=${myId}&endId=${targetId}`, 'GET');
+
+        if (data && Array.isArray(data) && data.length > 0) {
+            // 경로 시각화 (A -> B -> C)
+            const names = data.map(m => m.name).join(' ➡️ ');
+            pathDiv.innerHTML = `🚀 최단 경로: <br>${names} <br><small>(총 ${data.length - 1}단계)</small>`;
+        } else {
+            pathDiv.innerHTML = `🚫 ${targetName}님과는 연결된 경로가 없습니다.`;
+        }
+    }
+
+    // --- 공통 유틸 ---
+    async function callApi(endpoint, method, body = null) {
+        const headers = { 'Content-Type': 'application/json' };
+        // SecurityConfig에서 permitAll() 했으면 없어도 되지만, 혹시 모르니 넣음
+        if (accessToken) headers['Authorization'] = `Bearer ${accessToken}`;
+
+        const options = { method, headers };
+        if (body && method !== 'GET') options.body = JSON.stringify(body);
+
+        log(`[${method}] ${endpoint} 요청 중...`);
+
+        try {
+            const res = await fetch(API_BASE + endpoint, options);
+            const text = await res.text();
+            let result = null;
+
+            try {
+                result = JSON.parse(text);
+            } catch (e) {
+                result = text;
+            }
+
+            if (res.ok) {
+                log(`✅ 성공: ${JSON.stringify(result, null, 2)}`);
+                return result;
+            } else {
+                log(`❌ 실패: ${text}`); // 에러 메시지 그대로 출력
+                return null; // 실패 시 null 반환
+            }
+        } catch (err) {
+            log(`🔥 네트워크 에러: ${err}`);
+            alert("서버와 통신할 수 없습니다.");
+            return null;
+        }
+    }
+
+    function log(msg) {
+        const logBox = document.getElementById('api-log');
+        logBox.innerText = msg;
+        console.log(msg);
+    }
+</script>
+</body>
+</html>
