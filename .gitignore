@@ -44,3 +44,6 @@ application-secret.properties
 data/
 data/neo4j/
 data/redis/
+
+### Env ###
+.env
