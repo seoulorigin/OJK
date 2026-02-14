@@ -1,15 +1,16 @@
-# 1. 빌드 단계 (Gradle 최신 버전 + JDK 21)
 FROM gradle:jdk21-alpine AS build
 WORKDIR /app
-COPY . .
-# 의존성 설치 및 빌드 (테스트 제외)
-RUN ./gradlew clean bootJar -x test --no-daemon
 
-# 2. 실행 단계 (가벼운 JDK 21 실행 환경)
+# 라이브러리 의존성 먼저 복사 및 다운로드 (캐싱 활용)
+COPY build.gradle settings.gradle ./
+RUN gradle build -x test --no-daemon || return 0
+
+# 소스 코드 복사 및 빌드
+COPY src ./src
+RUN ./gradlew bootJar -x test --no-daemon
+
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
-# 빌드된 jar 파일만 가져오기
 COPY --from=build /app/build/libs/*.jar app.jar
-
-# 실행 명령어
 ENTRYPOINT ["java", "-jar", "app.jar"]
+
