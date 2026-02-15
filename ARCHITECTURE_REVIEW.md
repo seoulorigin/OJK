@@ -92,6 +92,26 @@ API 요청
    - 현재 `anyRequest().permitAll()`이라 로그인/JWT를 발급해도 보호되는 API가 없음.
    - JWT 검증 필터, 인증 객체 주입, endpoint별 권한정책 복구가 필요.
 
+   - **진행 계획(보안 설정 실효성 복구 로드맵)**
+     1) **엔드포인트 권한 정책 확정**
+        - 공개 API(`회원가입/로그인/이메일 인증`)와 인증 필요 API(`팔로우/팔로워 조회/경로 조회`)를 표로 먼저 확정.
+        - `/api/auth/**`는 `permitAll`, 그 외 `/api/member/**` 일부와 팔로우 관련 API는 `authenticated`로 분리.
+     2) **JWT 검증 파이프라인 추가**
+        - `OncePerRequestFilter` 기반 JWT 인증 필터를 도입해 요청 헤더의 Bearer 토큰을 파싱/검증.
+        - 토큰 유효 시 `SecurityContext`에 인증 객체를 저장하고, 실패 시 401 응답을 표준화.
+     3) **SecurityConfig 정책 복구**
+        - 현재 `anyRequest().permitAll()`을 제거하고 `requestMatchers` 기반 화이트리스트 정책으로 복구.
+        - 세션은 계속 `STATELESS` 유지, CORS/CSRF 정책은 API 성격에 맞게 명시.
+     4) **도메인 API 인증정보 연계**
+        - `fromId`를 URL로 직접 받는 방식은 위변조 위험이 있어, 인증 주체(`principal`) 기준으로 팔로우 주체를 결정하도록 개선.
+        - 서비스 레이어에서 "토큰 사용자 == 요청 사용자" 검증을 추가.
+     5) **예외/응답 포맷 표준화**
+        - 인증 실패(401), 권한 없음(403), 토큰 만료/위조를 `@RestControllerAdvice` 혹은 EntryPoint/AccessDeniedHandler로 통일.
+        - 프론트가 처리 가능한 에러 코드(예: `AUTH_EXPIRED`, `AUTH_INVALID`)를 정의.
+     6) **테스트 및 점진적 전환**
+        - `spring-security-test`로 공개/보호 엔드포인트 접근 제어 테스트를 작성.
+        - 1차로 읽기 API부터 보호 후, 2차로 쓰기 API까지 확장하는 단계적 릴리즈 전략 적용.
+
 2. **인증/회원가입 책임 분리 재정리**
    - `/api/auth/signup`와 `/api/member/signup`가 중복 존재.
    - AuthController가 MemberService까지 직접 다뤄 경계가 모호하므로 하나의 진입점으로 단순화 필요.
