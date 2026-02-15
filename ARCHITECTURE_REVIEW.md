@@ -71,6 +71,21 @@
   - Spring Boot starters(webmvc/security/validation/mail/data-neo4j/data-redis)
   - JWT(`jjwt-*`) + Lombok + Apache commons-lang3.
 
+### 3.1 의존 흐름 요약(레이어)
+
+```text
+API 요청
+  -> Controller(Auth/Member/Follow)
+    -> Service(AuthService/MemberService/FollowService)
+      -> Repository(MemberRepository/MajorRepository/VerificationStore)
+        -> 외부 인프라(Neo4j/Redis/SMTP)
+```
+
+- 인증 흐름은 `AuthController -> AuthService -> JwtTokenProvider`로 연결되고,
+  회원가입 흐름은 `AuthController|MemberController -> MemberService -> (VerificationStore, MajorRepository, MemberRepository)` 경로를 탄다.
+- 팔로우 흐름은 `FollowController -> FollowService -> MemberRepository`로 단순하며,
+  현재는 Follow 전용 저장소 계층 없이 Member 저장소에 결합되어 있다.
+
 ## 4. 개선이 필요한 부분
 
 1. **보안 설정 실효성 복구 필요(가장 우선)**
