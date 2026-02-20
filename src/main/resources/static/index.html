@@ -150,6 +150,23 @@
         }
     }
 
+    function decodeJwtPayload(token) {
+        try {
+            const payloadPart = token.split('.')[1];
+            if (!payloadPart) return null;
+
+            const normalized = payloadPart
+                .replace(/-/g, '+')
+                .replace(/_/g, '/');
+            const padded = normalized + '='.repeat((4 - (normalized.length % 4)) % 4);
+
+            return JSON.parse(atob(padded));
+        } catch (e) {
+            log(`⚠️ 토큰 파싱 실패: ${e}`);
+            return null;
+        }
+    }
+
     function logout() {
         accessToken = null;
         myId = null;
