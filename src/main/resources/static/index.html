@@ -79,7 +79,7 @@
     let accessToken = null;
     let myId = null;
 
-    const API_BASE = 'http://52.79.234.127:8080/api';
+    const API_BASE = `${window.location.origin}/api`;
 
     // --- 1. 인증 관련 함수 ---
     async function sendEmail() {
@@ -102,7 +102,7 @@
             majorName: document.getElementById('signup-major').value,
             bio: "테스트 계정입니다."
         };
-        callApi('/member/signup', 'POST', data);
+        callApi('/auth/signup', 'POST', data);
     }
 
     async function login() {
@@ -112,19 +112,41 @@
         };
 
         const result = await callApi('/auth/login', 'POST', data);
-        if (result && result.accessToken) {
-            accessToken = result.accessToken;
+        if (!result) return;
 
-            const payload = JSON.parse(atob(accessToken.split('.')[1]));
-            myId = payload.id;
-            const email = payload.sub;
+        accessToken = result.accessToken ?? result.token ?? result?.data?.accessToken ?? null;
 
-            document.getElementById('auth-section').classList.add('hidden');
-            document.getElementById('main-section').classList.remove('hidden');
-            document.getElementById('my-id-display').innerText = myId;
-            document.getElementById('user-name-display').innerText = email;
+        const payload = accessToken ? decodeJwtPayload(accessToken) : null;
+        myId = payload?.id ?? null;
+        const email = payload?.sub ?? data.email;
 
-            log(`로그인 성공! Token 저장됨. (My ID: ${myId})`);
+        document.getElementById('auth-section').classList.add('hidden');
+        document.getElementById('main-section').classList.remove('hidden');
+        document.getElementById('my-id-display').innerText = myId ?? '확인 불가';
+        document.getElementById('user-name-display').innerText = email;
+
+        if (!accessToken) {
+            log('⚠️ 로그인은 성공했지만 accessToken이 응답에 없습니다.');
+            return;
+        }
+
+        log(`로그인 성공! Token 저장됨. (My ID: ${myId})`);
+    }
+
+    function decodeJwtPayload(token) {
+        try {
+            const payloadPart = token.split('.')[1];
+            if (!payloadPart) return null;
+
+            const normalized = payloadPart
+                .replace(/-/g, '+')
+                .replace(/_/g, '/');
+            const padded = normalized + '='.repeat((4 - (normalized.length % 4)) % 4);
+
+            return JSON.parse(atob(padded));
+        } catch (e) {
+            log(`⚠️ 토큰 파싱 실패: ${e}`);
+            return null;
         }
     }
 
