@@ -6,6 +6,7 @@ import com.seoulorigin.OJK.domain.member.repository.MemberRepository;
 import jakarta.servlet.http.HttpSession;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -33,5 +34,13 @@ public class AuthService {
 
     public void logout(HttpSession session) {
         session.invalidate();
+    }
+
+    public Long getCurrentMemberId(HttpSession session) {
+        Object memberId = session.getAttribute(SESSION_MEMBER_ID);
+        if (memberId instanceof Long id) {
+            return id;
+        }
+        throw new AccessDeniedException("로그인이 필요합니다.");
     }
 }
