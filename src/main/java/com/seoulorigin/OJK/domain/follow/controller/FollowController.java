@@ -1,8 +1,10 @@
 package com.seoulorigin.OJK.domain.follow.controller;
 
+import com.seoulorigin.OJK.domain.auth.service.AuthService;
 import com.seoulorigin.OJK.domain.follow.service.FollowService;
 import com.seoulorigin.OJK.domain.member.dto.MemberResponse;
 import com.seoulorigin.OJK.domain.member.entity.Member;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,6 +16,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class FollowController {
     private final FollowService followService;
+    private final AuthService authService;
 
     @PostMapping("/{fromId}/follow/{toId}")
     public ResponseEntity<String> follow(
@@ -21,6 +24,15 @@ public class FollowController {
             @PathVariable Long toId
     ) {
         followService.follow(fromId, toId);
+        return ResponseEntity.ok("Success Follow.");
+    }
+
+    @PostMapping("/me/follow/{toId}")
+    public ResponseEntity<String> followMe(
+            @PathVariable Long toId,
+            HttpSession session
+    ) {
+        followService.follow(authService.getCurrentMemberId(session), toId);
         return ResponseEntity.ok("Success Follow.");
     }
 

@@ -114,57 +114,20 @@
         const result = await callApi('/auth/login', 'POST', data);
         if (!result) return;
 
-        accessToken = result.accessToken ?? result.token ?? result?.data?.accessToken ?? null;
-
-        const payload = accessToken ? decodeJwtPayload(accessToken) : null;
-        myId = payload?.id ?? null;
-        const email = payload?.sub ?? data.email;
-
-        document.getElementById('auth-section').classList.add('hidden');
-        document.getElementById('main-section').classList.remove('hidden');
-        document.getElementById('my-id-display').innerText = myId ?? '확인 불가';
-        document.getElementById('user-name-display').innerText = email;
-
-        if (!accessToken) {
-            log('⚠️ 로그인은 성공했지만 accessToken이 응답에 없습니다.');
+        const me = await callApi('/auth/me', 'GET');
+        if (typeof me !== 'number') {
+            log('❌ 로그인은 성공했지만 내 ID 조회(/auth/me)에 실패했습니다.');
             return;
         }
 
-        log(`로그인 성공! Token 저장됨. (My ID: ${myId})`);
-    }
+        myId = me;
 
-    function decodeJwtPayload(token) {
-        try {
-            const payloadPart = token.split('.')[1];
-            if (!payloadPart) return null;
+        document.getElementById('auth-section').classList.add('hidden');
+        document.getElementById('main-section').classList.remove('hidden');
+        document.getElementById('my-id-display').innerText = myId;
+        document.getElementById('user-name-display').innerText = data.email;
 
-            const normalized = payloadPart
-                .replace(/-/g, '+')
-                .replace(/_/g, '/');
-            const padded = normalized + '='.repeat((4 - (normalized.length % 4)) % 4);
-
-            return JSON.parse(atob(padded));
-        } catch (e) {
-            log(`⚠️ 토큰 파싱 실패: ${e}`);
-            return null;
-        }
-    }
-
-    function decodeJwtPayload(token) {
-        try {
-            const payloadPart = token.split('.')[1];
-            if (!payloadPart) return null;
-
-            const normalized = payloadPart
-                .replace(/-/g, '+')
-                .replace(/_/g, '/');
-            const padded = normalized + '='.repeat((4 - (normalized.length % 4)) % 4);
-
-            return JSON.parse(atob(padded));
-        } catch (e) {
-            log(`⚠️ 토큰 파싱 실패: ${e}`);
-            return null;
-        }
+        log(`로그인 성공! (My ID: ${myId})`);
     }
 
     function logout() {
@@ -218,7 +181,7 @@
 
     async function followUser(targetId) {
         if (!confirm(`정말 팔로우 하시겠습니까? (ID: ${targetId})`)) return;
-        await callApi(`/member/${myId}/follow/${targetId}`, 'POST');
+        await callApi(`/member/me/follow/${targetId}`, 'POST');
         alert("팔로우 성공!");
     }
 
@@ -228,8 +191,8 @@
         pathDiv.innerHTML = '경로 계산 중... ⏳';
         pathDiv.classList.remove('hidden');
 
-        // API 호출: /api/member/path?startId={myId}&endId={targetId}
-        const data = await callApi(`/member/path?startId=${myId}&endId=${targetId}`, 'GET');
+        // API 호출: /api/member/me/path?endId={targetId}
+        const data = await callApi(`/member/me/path?endId=${targetId}`, 'GET');
 
         if (data && Array.isArray(data) && data.length > 0) {
             // 경로 시각화 (A -> B -> C)

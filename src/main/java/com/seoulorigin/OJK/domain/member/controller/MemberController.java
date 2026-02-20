@@ -1,9 +1,11 @@
 package com.seoulorigin.OJK.domain.member.controller;
 
+import com.seoulorigin.OJK.domain.auth.service.AuthService;
 import com.seoulorigin.OJK.domain.member.dto.MemberResponse;
 import com.seoulorigin.OJK.domain.member.dto.MemberSignupRequest;
 import com.seoulorigin.OJK.domain.member.entity.Member;
 import com.seoulorigin.OJK.domain.member.service.MemberService;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -17,6 +19,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MemberController {
     private final MemberService memberService;
+    private final AuthService authService;
 
     @PostMapping("/signup")
     public ResponseEntity<MemberResponse> signup(@RequestBody @Valid MemberSignupRequest request) {
@@ -45,6 +48,14 @@ public class MemberController {
             @RequestParam Long endId
     ) {
         return ResponseEntity.ok(memberService.getPath(startId, endId));
+    }
+
+    @GetMapping("/me/path")
+    public ResponseEntity<List<Member>> findPathFromMe(
+            @RequestParam Long endId,
+            HttpSession session
+    ) {
+        return ResponseEntity.ok(memberService.getPath(authService.getCurrentMemberId(session), endId));
     }
 
 
