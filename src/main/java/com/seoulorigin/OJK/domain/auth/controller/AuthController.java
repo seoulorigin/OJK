@@ -3,13 +3,13 @@ package com.seoulorigin.OJK.domain.auth.controller;
 import com.seoulorigin.OJK.domain.auth.dto.EmailRequest;
 import com.seoulorigin.OJK.domain.auth.dto.EmailVerificationRequest;
 import com.seoulorigin.OJK.domain.auth.dto.LoginRequest;
-import com.seoulorigin.OJK.domain.auth.dto.TokenResponse;
 import com.seoulorigin.OJK.domain.auth.service.AuthService;
 import com.seoulorigin.OJK.domain.auth.service.EmailService;
 import com.seoulorigin.OJK.domain.auth.repository.VerificationStore;
 import com.seoulorigin.OJK.domain.member.dto.MemberResponse;
 import com.seoulorigin.OJK.domain.member.dto.MemberSignupRequest;
 import com.seoulorigin.OJK.domain.member.service.MemberService;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -59,7 +59,14 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<TokenResponse> login(@RequestBody @Valid LoginRequest request) {
-        return ResponseEntity.ok(authService.login(request));
+    public ResponseEntity<String> login(@RequestBody @Valid LoginRequest request, HttpSession session) {
+        authService.login(request, session);
+        return ResponseEntity.ok("로그인 성공");
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<String> logout(HttpSession session) {
+        authService.logout(session);
+        return ResponseEntity.ok("로그아웃 성공");
     }
 }
