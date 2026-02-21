@@ -45,10 +45,34 @@ public class SecurityConfig {
 
                 // 요청 주소별 권한 설정
                 .authorizeHttpRequests(authorize -> authorize
+                        // 정적 리소스
                         .requestMatchers("/", "/index.html", "/static/**", "/error").permitAll()
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/member/signup").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/member/**").permitAll()
+
+                        // 인증(공개): 회원가입/이메일 인증/로그인
+                        .requestMatchers(HttpMethod.POST,
+                                "/api/auth/email/send",
+                                "/api/auth/email/verify",
+                                "/api/auth/login",
+                                "/api/auth/signup",
+                                "/api/member/signup"
+                        ).permitAll()
+
+                        // 멤버 조회(공개)
+                        .requestMatchers(HttpMethod.GET,
+                                "/api/member/{name}",
+                                "/api/member/path",
+                                "/api/member/{id}/followers"
+                        ).permitAll()
+
+                        // 세션 필요: 현재 사용자 기준 API
+                        .requestMatchers(HttpMethod.GET, "/api/auth/me").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/logout").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/member/me/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/member/me/**").authenticated()
+
+                        // 세션 필요: 멤버 관련 변경 작업
+                        .requestMatchers(HttpMethod.POST, "/api/member/**").authenticated()
+
                         .anyRequest().authenticated()
                 );
 
