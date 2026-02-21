@@ -8,7 +8,6 @@ import com.seoulorigin.OJK.domain.auth.service.EmailService;
 import com.seoulorigin.OJK.domain.auth.repository.VerificationStore;
 import com.seoulorigin.OJK.domain.member.dto.MemberResponse;
 import com.seoulorigin.OJK.domain.member.dto.MemberSignupRequest;
-import com.seoulorigin.OJK.domain.member.service.MemberService;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +25,6 @@ public class AuthController {
     private final EmailService emailService;
     private final VerificationStore verificationStore;
     private final AuthService authService;
-    private final MemberService memberService;
 
     @PostMapping("/email/send")
     public ResponseEntity<String> sendEmail(@RequestBody @Valid EmailRequest request) {
@@ -56,7 +54,7 @@ public class AuthController {
 
     @PostMapping("/signup")
     public ResponseEntity<MemberResponse> signup(@RequestBody @Valid MemberSignupRequest request) {
-        return ResponseEntity.ok(MemberResponse.from(memberService.signup(request)));
+        return ResponseEntity.ok(MemberResponse.from(authService.signup(request)));
     }
 
     @PostMapping("/login")

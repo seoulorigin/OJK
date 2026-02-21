@@ -1,14 +1,12 @@
 package com.seoulorigin.OJK.domain.member.controller;
 
 import com.seoulorigin.OJK.domain.auth.service.AuthService;
+import com.seoulorigin.OJK.domain.member.dto.MemberPathNodeResponse;
 import com.seoulorigin.OJK.domain.member.dto.MemberResponse;
-import com.seoulorigin.OJK.domain.member.dto.MemberSignupRequest;
 import com.seoulorigin.OJK.domain.member.entity.Member;
 import com.seoulorigin.OJK.domain.member.service.MemberService;
 import jakarta.servlet.http.HttpSession;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,13 +19,6 @@ public class MemberController {
     private final MemberService memberService;
     private final AuthService authService;
 
-    @PostMapping("/signup")
-    public ResponseEntity<MemberResponse> signup(@RequestBody @Valid MemberSignupRequest request) {
-        Member response = memberService.signup(request);
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(MemberResponse.from(response));
-    }
 
     @GetMapping("/{name}")
     public ResponseEntity<List<MemberResponse>> findMember(
@@ -43,19 +34,27 @@ public class MemberController {
     }
 
     @GetMapping("/path")
-    public ResponseEntity<List<Member>> findPath(
+    public ResponseEntity<List<MemberPathNodeResponse>> findPath(
             @RequestParam Long startId,
             @RequestParam Long endId
     ) {
-        return ResponseEntity.ok(memberService.getPath(startId, endId));
+        List<MemberPathNodeResponse> responses = memberService.getPath(startId, endId).stream()
+                .map(MemberPathNodeResponse::from)
+                .toList();
+        return ResponseEntity.ok(responses);
     }
 
     @GetMapping("/me/path")
-    public ResponseEntity<List<Member>> findPathFromMe(
+    public ResponseEntity<List<MemberPathNodeResponse>> findPathFromMe(
             @RequestParam Long endId,
             HttpSession session
     ) {
-        return ResponseEntity.ok(memberService.getPath(authService.getCurrentMemberId(session), endId));
+        List<MemberPathNodeResponse> responses = memberService
+                .getPath(authService.getCurrentMemberId(session), endId)
+                .stream()
+                .map(MemberPathNodeResponse::from)
+                .toList();
+        return ResponseEntity.ok(responses);
     }
 
 
