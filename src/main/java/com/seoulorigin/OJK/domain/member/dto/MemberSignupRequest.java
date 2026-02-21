@@ -2,6 +2,8 @@ package com.seoulorigin.OJK.domain.member.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 
 /**
  * 회원가입 요청
@@ -16,7 +18,13 @@ import jakarta.validation.constraints.NotNull;
  */
 public record MemberSignupRequest(
         @NotBlank String email,
-        @NotBlank String password,
+        @NotBlank
+        @Size(min = 8, max = 64, message = "비밀번호는 8자 이상 64자 이하여야 합니다.")
+        @Pattern(
+                regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9]).{8,64}$",
+                message = "비밀번호는 대문자, 소문자, 숫자, 특수문자를 각각 1개 이상 포함해야 합니다."
+        )
+        String password,
         @NotBlank String name,
         @NotNull Integer admissionYear,
         @NotBlank String college,

@@ -1,7 +1,6 @@
 package com.seoulorigin.OJK.domain.member.repository;
 
 import com.seoulorigin.OJK.domain.member.entity.Member;
-import jakarta.validation.constraints.NotBlank;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.query.Query;
 import org.springframework.data.repository.query.Param;
@@ -23,8 +22,9 @@ public interface MemberRepository extends Neo4jRepository<Member, Long> {
             "AND ($majorName IS NULL OR mj.majorName = $majorName) " +
             "RETURN m, r, mj")
     List<Member> searchMembers(@Param("keyword") String keyword,
-                                      @Param("admissionYear") Integer admissionYear,
-                                      @Param("majorName") String majorName);
+                               @Param("admissionYear") Integer admissionYear,
+                               @Param("majorName") String majorName);
+
     /**
      * 최단 경로 탐색
      * @param startId 본인
@@ -34,7 +34,7 @@ public interface MemberRepository extends Neo4jRepository<Member, Long> {
     @Query("MATCH (start:Member), (end:Member) " +
             "WHERE id(start) = $startId AND id(end) = $endId " +
             "MATCH path = shortestPath((start)-[:FOLLOWS*..6]->(end)) " +
-            "UNWIND nodes(path) AS n " +  // 리스트를 낱개로 풉니다
+            "UNWIND nodes(path) AS n " +
             "RETURN n")
     List<Member> findPathById(@Param("startId") Long startId,
                               @Param("endId") Long endId);
@@ -49,6 +49,46 @@ public interface MemberRepository extends Neo4jRepository<Member, Long> {
             "WHERE id(me) = $memberId " +
             "RETURN following")
     List<Member> findFollowingsById(@Param("memberId") Long memberId);
+
+    @Query("MATCH (from:Member)-[r:FOLLOWS]->(to:Member) " +
+            "WHERE id(from) = $fromId AND id(to) = $toId " +
+            "RETURN count(r) > 0")
+    boolean existsFollowRelation(@Param("fromId") Long fromId, @Param("toId") Long toId);
+
+    @Query("MATCH (from:Member)-[r:FOLLOW_REQUEST]->(to:Member) " +
+            "WHERE id(from) = $fromId AND id(to) = $toId " +
+            "RETURN count(r) > 0")
+    boolean existsFollowRequest(@Param("fromId") Long fromId, @Param("toId") Long toId);
+
+    @Query("MATCH (from:Member), (to:Member) " +
+            "WHERE id(from) = $fromId AND id(to) = $toId " +
+            "MERGE (from)-[:FOLLOW_REQUEST {requestedAt: datetime()}]->(to)")
+    void createFollowRequest(@Param("fromId") Long fromId, @Param("toId") Long toId);
+
+    @Query("MATCH (from:Member)-[r:FOLLOW_REQUEST]->(to:Member) " +
+            "WHERE id(from) = $fromId AND id(to) = $toId " +
+            "DELETE r " +
+            "RETURN count(r)")
+    long rejectFollowRequest(@Param("fromId") Long fromId, @Param("toId") Long toId);
+
+    @Query("MATCH (from:Member)-[r:FOLLOW_REQUEST]->(to:Member) " +
+            "WHERE id(from) = $fromId AND id(to) = $toId " +
+            "DELETE r " +
+            "MERGE (from)-[:FOLLOWS]->(to) " +
+            "RETURN count(r)")
+    long approveFollowRequest(@Param("fromId") Long fromId, @Param("toId") Long toId);
+
+    @Query("MATCH (from:Member)-[r:FOLLOWS]->(to:Member) " +
+            "WHERE id(from) = $fromId AND id(to) = $toId " +
+            "DELETE r " +
+            "RETURN count(r)")
+    long unfollow(@Param("fromId") Long fromId, @Param("toId") Long toId);
+
+    @Query("MATCH (requester:Member)-[r:FOLLOW_REQUEST]->(me:Member) " +
+            "WHERE id(me) = $memberId " +
+            "MATCH (requester)-[b:BELONGS_TO]->(mj:Major) " +
+            "RETURN requester, b, r, mj")
+    List<Member> findPendingFollowRequestsByMemberId(@Param("memberId") Long memberId);
 
     Optional<Member> findByEmail(String email);
 }

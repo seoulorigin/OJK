@@ -53,8 +53,7 @@ public class SecurityConfig {
                                 "/api/auth/email/send",
                                 "/api/auth/email/verify",
                                 "/api/auth/login",
-                                "/api/auth/signup",
-                                "/api/member/signup"
+                                "/api/auth/signup"
                         ).permitAll()
 
                         // 멤버 조회(공개)
