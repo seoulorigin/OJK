@@ -21,9 +21,11 @@ public class FollowController {
     @PostMapping("/{fromId}/follow/{toId}")
     public ResponseEntity<String> follow(
             @PathVariable Long fromId,
-            @PathVariable Long toId
+            @PathVariable Long toId,
+            HttpSession session
     ) {
-        followService.follow(fromId, toId);
+        Long actorId = authService.getCurrentMemberId(session);
+        followService.follow(actorId, fromId, toId);
         return ResponseEntity.ok("Success Follow.");
     }
 
@@ -32,7 +34,8 @@ public class FollowController {
             @PathVariable Long toId,
             HttpSession session
     ) {
-        followService.follow(authService.getCurrentMemberId(session), toId);
+        Long actorId = authService.getCurrentMemberId(session);
+        followService.follow(actorId, actorId, toId);
         return ResponseEntity.ok("Success Follow.");
     }
 
