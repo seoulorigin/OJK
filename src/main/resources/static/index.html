@@ -418,12 +418,10 @@
         const email = document.getElementById('login-email').value;
         const password = document.getElementById('login-password').value;
 
-        const ok = await callApi('/auth/login', 'POST', { email, password });
-        if (!ok) return;
+        const loginMemberId = await callApi('/auth/login', 'POST', { email, password });
+        if (typeof loginMemberId !== 'number') return;
 
-        meId = await callApi('/auth/me', 'GET');
-        if (!meId) return;
-
+        meId = loginMemberId;
         document.getElementById('guest-actions').classList.add('hidden');
         document.getElementById('main-title').textContent = `메인 화면 (내 ID: ${meId})`;
         showPage('main-page');

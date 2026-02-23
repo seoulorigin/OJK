@@ -58,9 +58,8 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody @Valid LoginRequest request, HttpSession session) {
-        authService.login(request, session);
-        return ResponseEntity.ok("로그인 성공");
+    public ResponseEntity<Long> login(@RequestBody @Valid LoginRequest request, HttpSession session) {
+        return ResponseEntity.ok(authService.login(request, session));
     }
 
     @PostMapping("/logout")
