@@ -21,6 +21,11 @@ public class MemberController {
     private final AuthService authService;
 
 
+    @GetMapping("/id/{memberId}")
+    public ResponseEntity<MemberResponse> findMemberById(@PathVariable Long memberId) {
+        return ResponseEntity.ok(MemberResponse.from(memberService.getMember(memberId)));
+    }
+
     @GetMapping("/{name}")
     public ResponseEntity<List<MemberResponse>> findMember(
             @PathVariable String name,

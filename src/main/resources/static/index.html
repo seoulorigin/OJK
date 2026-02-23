@@ -372,6 +372,13 @@
             document.getElementById(id).classList.add('hidden');
         });
         document.getElementById(pageId).classList.remove('hidden');
+
+        const pathSection = document.getElementById('path-users-section');
+        if (pageId === 'main-page') {
+            pathSection.classList.remove('hidden');
+        } else {
+            pathSection.classList.add('hidden');
+        }
     }
 
     function resetInactivityTimer() {
@@ -561,16 +568,29 @@
         });
     }
 
-    function openUserDetail(user) {
+    async function openUserDetail(user) {
+        let detailUser = user;
+
+        if (!detailUser || detailUser.email === undefined || detailUser.college === undefined) {
+            if (!detailUser?.id) {
+                alert('사용자 상세 정보를 불러올 수 없습니다.');
+                return;
+            }
+
+            const fetched = await callApi(`/member/id/${detailUser.id}`, 'GET');
+            if (!fetched) return;
+            detailUser = fetched;
+        }
+
         const detail = document.getElementById('detail-content');
         detail.innerHTML = `
-            <p><b>이름:</b> ${user.name}</p>
-            <p><b>학교 웹 메일:</b> ${user.email}</p>
-            <p><b>학번:</b> ${user.admissionYear}</p>
-            <p><b>소속단과대학:</b> ${user.college ?? '-'}</p>
-            <p><b>소속학과:</b> ${user.majorName ?? '-'}</p>
-            <p><b>인스타그램:</b> ${user.instagramId ?? '-'}</p>
-            <p><b>자기소개:</b> ${user.bio ?? '-'}</p>
+            <p><b>이름:</b> ${detailUser.name}</p>
+            <p><b>학교 웹 메일:</b> ${detailUser.email ?? '-'}</p>
+            <p><b>학번:</b> ${detailUser.admissionYear ?? '-'}</p>
+            <p><b>소속단과대학:</b> ${detailUser.college ?? '-'}</p>
+            <p><b>소속학과:</b> ${detailUser.majorName ?? '-'}</p>
+            <p><b>인스타그램:</b> ${detailUser.instagramId ?? '-'}</p>
+            <p><b>자기소개:</b> ${detailUser.bio ?? '-'}</p>
         `;
 
         document.getElementById('detail-modal').classList.remove('hidden');
