@@ -1,249 +1,548 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>오작교(OJK) API 테스터</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>오작교 OJK</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 900px; margin: 0 auto; padding: 20px; background-color: #f4f4f9; }
-        h1, h2 { color: #333; text-align: center; }
-        .card { background: white; padding: 20px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .hidden { display: none; }
-        input, select, button { padding: 10px; margin: 5px 0; width: 100%; box-sizing: border-box; border: 1px solid #ddd; border-radius: 4px; }
-        button { background-color: #5c6bc0; color: white; border: none; cursor: pointer; font-weight: bold; }
-        button:hover { background-color: #3f51b5; }
-        button.secondary { background-color: #eee; color: #333; }
-        button.path-btn { background-color: #ff9800; }
-        button.path-btn:hover { background-color: #f57c00; }
-        .row { display: flex; gap: 10px; }
-        pre { background: #333; color: #0f0; padding: 10px; border-radius: 4px; overflow-x: auto; font-size: 12px; }
-        .result-item { border-bottom: 1px solid #eee; padding: 10px 0; display: flex; justify-content: space-between; align-items: center; }
-        .path-result { margin-top: 10px; padding: 10px; background-color: #e3f2fd; border-radius: 4px; color: #0d47a1; font-weight: bold; }
+        :root {
+            --bg: #f6f8fc;
+            --card: #ffffff;
+            --primary: #4f46e5;
+            --primary-strong: #3730a3;
+            --text: #111827;
+            --muted: #6b7280;
+            --border: #e5e7eb;
+            --danger: #dc2626;
+        }
+
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: 'Pretendard', 'Noto Sans KR', system-ui, -apple-system, sans-serif;
+            color: var(--text);
+            background: var(--bg);
+        }
+
+        .hidden { display: none !important; }
+
+        .top-bar {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 28px;
+            border-bottom: 1px solid var(--border);
+            background: rgba(255,255,255,0.9);
+            backdrop-filter: blur(8px);
+        }
+
+        .brand { font-weight: 800; color: var(--primary-strong); }
+        .actions { display: flex; gap: 10px; }
+
+        .container { max-width: 1080px; margin: 0 auto; padding: 24px; }
+
+        .hero {
+            border-radius: 22px;
+            padding: 52px 40px;
+            color: #fff;
+            background: linear-gradient(130deg, #4f46e5, #7c3aed 55%, #db2777);
+            box-shadow: 0 15px 45px rgba(79,70,229,.28);
+            margin-bottom: 34px;
+        }
+
+        .hero h1 { margin: 0; font-size: 42px; }
+        .hero p { margin-top: 14px; max-width: 680px; line-height: 1.6; }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 14px;
+        }
+
+        .feature-card {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 18px;
+        }
+
+        .feature-card h3 { margin: 0 0 8px; }
+        .feature-card p { margin: 0; color: var(--muted); line-height: 1.5; }
+
+        .section { margin: 28px 0 52px; }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.03);
+        }
+
+        .auth-wrap { max-width: 560px; margin: 20px auto 0; }
+        h2, h3 { margin-top: 0; }
+
+        .field { margin-bottom: 12px; }
+        label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+        input, textarea {
+            width: 100%;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            padding: 11px 12px;
+            font-size: 14px;
+        }
+
+        textarea { min-height: 86px; resize: vertical; }
+        .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+        button {
+            border: none;
+            border-radius: 10px;
+            padding: 10px 14px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-strong); }
+        .btn-secondary { background: #eef2ff; color: #312e81; }
+        .btn-outline { background: transparent; border: 1px solid var(--border); }
+        .btn-danger { background: var(--danger); color: #fff; }
+
+        .main-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+
+        .search-box {
+            max-width: 660px;
+            margin: 56px auto 16px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .search-box input { font-size: 16px; padding: 14px; }
+        .search-box button { padding: 14px 18px; }
+
+        .result-grid { display: grid; gap: 12px; margin-top: 14px; }
+
+        .user-card {
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #fff;
+            cursor: pointer;
+        }
+
+        .user-card small { color: var(--muted); }
+        .empty { color: var(--muted); text-align: center; padding: 24px; }
+
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(17,24,39,.55);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            z-index: 30;
+        }
+
+        .modal-content {
+            width: min(680px, 100%);
+            max-height: 90vh;
+            overflow-y: auto;
+            background: #fff;
+            border-radius: 16px;
+            padding: 22px;
+        }
+
+        .mono {
+            background: #0b1220;
+            color: #8ef7bf;
+            border-radius: 10px;
+            padding: 10px;
+            font-size: 12px;
+            white-space: pre-wrap;
+        }
     </style>
 </head>
 <body>
+<header class="top-bar">
+    <div class="brand">오작교 OJK</div>
+    <div class="actions" id="guest-actions">
+        <button class="btn-outline" onclick="showPage('login-page')">로그인</button>
+        <button class="btn-primary" onclick="showPage('signup-page')">회원가입</button>
+    </div>
+</header>
 
-<h1>오작교 API 테스터</h1>
-
-<div id="auth-section">
-    <div class="card">
-        <h2>1. 이메일 인증 & 가입</h2>
-        <input type="email" id="signup-email" placeholder="학교 이메일 (예: test@dankook.ac.kr)" value="test@dankook.ac.kr">
-        <div class="row">
-            <button onclick="sendEmail()">인증번호 발송</button>
-            <button class="secondary" onclick="verifyEmail()">개발자 프리패스(000000)</button>
+<main class="container">
+    <section id="intro-page">
+        <div class="hero">
+            <h1>캠퍼스 인맥 연결 플랫폼, 오작교</h1>
+            <p>스크롤하며 오작교에서 제공하는 기능을 확인해보세요. 이름으로 사람을 찾고, 프로필을 확인하고, 팔로우 요청을 보내고, 최단 인맥 경로까지 탐색할 수 있습니다.</p>
         </div>
-        <hr>
-        <input type="text" id="signup-name" placeholder="이름" value="홍길동">
-        <input type="password" id="signup-pw" placeholder="비밀번호" value="1234">
-        <div class="row">
-            <input type="number" id="signup-year" placeholder="학번(2024)" value="2024">
-            <input type="text" id="signup-college" placeholder="단과대(공과대학)" value="공과대학">
+
+        <div class="section feature-grid">
+            <article class="feature-card">
+                <h3>🔍 사용자 검색</h3>
+                <p>이름으로 빠르게 사용자를 검색하고 같은 이름의 여러 사용자도 카드 형태로 확인할 수 있습니다.</p>
+            </article>
+            <article class="feature-card">
+                <h3>👤 상세 프로필</h3>
+                <p>이름, 학번, 학과 외에도 소속 단과대학, 인스타그램, 자기소개를 확인할 수 있습니다.</p>
+            </article>
+            <article class="feature-card">
+                <h3>🤝 팔로우 요청</h3>
+                <p>프로필에서 바로 팔로우 요청을 전송하고, 우측 상단 버튼으로 요청 상태를 확인할 수 있습니다.</p>
+            </article>
+            <article class="feature-card">
+                <h3>🧭 경로 탐색</h3>
+                <p>관심 사용자와 나 사이의 연결 경로를 찾아 인맥 네트워크를 탐색할 수 있습니다.</p>
+            </article>
         </div>
-        <input type="text" id="signup-major" placeholder="전공(소프트웨어학과)" value="소프트웨어학과">
-        <button onclick="signup()">회원가입 하기</button>
-    </div>
+    </section>
 
-    <div class="card">
-        <h2>2. 로그인</h2>
-        <input type="email" id="login-email" placeholder="이메일" value="test@dankook.ac.kr">
-        <input type="password" id="login-pw" placeholder="비밀번호" value="1234">
-        <button onclick="login()">로그인</button>
-    </div>
-</div>
-
-<div id="main-section" class="hidden">
-    <div class="card" style="background: #e8eaf6; border: 1px solid #c5cae9;">
-        <h3>👋 환영합니다, <span id="user-name-display"></span>님!</h3>
-        <p>내 ID: <span id="my-id-display"></span> | 토큰 보유중</p>
-        <button class="secondary" onclick="logout()">로그아웃</button>
-    </div>
-
-    <div class="card">
-        <h2>3. 친구 검색 & 팔로우 & 경로탐색</h2>
-        <div class="row">
-            <input type="text" id="search-keyword" placeholder="이름으로 검색">
-            <button onclick="searchMember()">검색</button>
+    <section id="login-page" class="auth-wrap hidden">
+        <div class="card">
+            <h2>로그인</h2>
+            <div class="field">
+                <label>학교 웹 메일</label>
+                <input id="login-email" type="email" placeholder="abc@dankook.ac.kr" />
+            </div>
+            <div class="field">
+                <label>비밀번호</label>
+                <input id="login-password" type="password" placeholder="비밀번호" />
+            </div>
+            <button class="btn-primary" style="width: 100%;" onclick="login()">로그인</button>
         </div>
-        <div id="search-results"></div>
-        <div id="path-display" class="hidden path-result"></div>
-    </div>
+    </section>
 
-    <div class="card">
-        <h2>4. API 응답 로그</h2>
-        <pre id="api-log">API 요청 대기중...</pre>
+    <section id="signup-page" class="auth-wrap hidden">
+        <div class="card">
+            <h2>회원가입</h2>
+            <div class="field">
+                <label>학교 웹 메일</label>
+                <input id="signup-email" type="email" placeholder="abc@dankook.ac.kr" />
+            </div>
+            <div class="row">
+                <div class="field">
+                    <label>이메일 인증번호</label>
+                    <input id="signup-code" type="text" placeholder="인증번호 6자리" />
+                </div>
+                <div class="field" style="display: flex; align-items: end; gap: 8px;">
+                    <button class="btn-outline" onclick="sendEmailCode()">인증번호 발송</button>
+                    <button class="btn-secondary" onclick="verifyEmailCode()">인증번호 확인</button>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="field">
+                    <label>이름</label>
+                    <input id="signup-name" type="text" placeholder="홍길동" />
+                </div>
+                <div class="field">
+                    <label>학번</label>
+                    <input id="signup-year" type="number" placeholder="2024" />
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="field">
+                    <label>비밀번호</label>
+                    <input id="signup-password" type="password" placeholder="비밀번호" />
+                </div>
+                <div class="field">
+                    <label>비밀번호 재입력</label>
+                    <input id="signup-password-confirm" type="password" placeholder="비밀번호 재입력" />
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="field">
+                    <label>소속단과대학</label>
+                    <input id="signup-college" type="text" placeholder="공과대학" />
+                </div>
+                <div class="field">
+                    <label>소속학과</label>
+                    <input id="signup-major" type="text" placeholder="소프트웨어학과" />
+                </div>
+            </div>
+
+            <div class="field">
+                <label>인스타그램 아이디 (선택)</label>
+                <input id="signup-instagram" type="text" placeholder="instagram_id" />
+            </div>
+            <div class="field">
+                <label>자기소개 (선택)</label>
+                <textarea id="signup-bio" placeholder="자기소개를 입력해주세요"></textarea>
+            </div>
+            <button class="btn-primary" style="width: 100%;" onclick="signup()">회원가입 완료</button>
+        </div>
+    </section>
+
+    <section id="main-page" class="hidden">
+        <div class="main-top">
+            <h2 id="main-title">메인</h2>
+            <div class="actions">
+                <button class="btn-outline" onclick="showMyInfo()">내 정보</button>
+                <button class="btn-outline" onclick="showFollowRequests()">팔로우 요청 확인</button>
+                <button class="btn-danger" onclick="logout()">로그아웃</button>
+            </div>
+        </div>
+
+        <div class="search-box">
+            <input id="search-input" type="text" placeholder="사용자 이름 검색" />
+            <button class="btn-primary" onclick="searchMembers()">검색</button>
+        </div>
+
+        <div id="search-result-area" class="card hidden">
+            <h3>검색 결과</h3>
+            <div id="search-result-list" class="result-grid"></div>
+            <div id="search-empty" class="empty hidden">사용자가 없습니다.</div>
+        </div>
+    </section>
+
+    <section class="section">
+        <h3>API 로그</h3>
+        <pre id="api-log" class="mono">대기 중...</pre>
+    </section>
+</main>
+
+<div id="detail-modal" class="modal hidden">
+    <div class="modal-content">
+        <h3>사용자 상세 정보</h3>
+        <div id="detail-content"></div>
+        <div class="actions" style="margin-top: 16px;">
+            <button class="btn-primary" id="follow-btn">팔로우 요청</button>
+            <button class="btn-secondary" id="path-btn">경로 탐색</button>
+            <button class="btn-outline" onclick="closeModal()">닫기</button>
+        </div>
+        <div id="path-result" class="field" style="margin-top: 14px;"></div>
     </div>
 </div>
 
 <script>
-    let accessToken = null;
-    let myId = null;
-
     const API_BASE = `${window.location.origin}/api`;
+    let meId = null;
+    let meProfile = null;
 
-    // --- 1. 인증 관련 함수 ---
-    async function sendEmail() {
-        const email = document.getElementById('signup-email').value;
-        callApi('/auth/email/send', 'POST', { email });
+    function log(message) {
+        document.getElementById('api-log').textContent = message;
+        console.log(message);
     }
 
-    async function verifyEmail() {
-        const email = document.getElementById('signup-email').value;
-        callApi('/auth/email/verify', 'POST', { email, code: '000000' });
+    function showPage(pageId) {
+        ['intro-page', 'login-page', 'signup-page', 'main-page'].forEach(id => {
+            document.getElementById(id).classList.add('hidden');
+        });
+        document.getElementById(pageId).classList.remove('hidden');
     }
 
-    async function signup() {
-        const data = {
-            email: document.getElementById('signup-email').value,
-            password: document.getElementById('signup-pw').value,
-            name: document.getElementById('signup-name').value,
-            admissionYear: parseInt(document.getElementById('signup-year').value),
-            college: document.getElementById('signup-college').value,
-            majorName: document.getElementById('signup-major').value,
-            bio: "테스트 계정입니다."
+    async function callApi(endpoint, method = 'GET', body) {
+        const options = {
+            method,
+            headers: { 'Content-Type': 'application/json' }
         };
-        callApi('/auth/signup', 'POST', data);
-    }
-
-    async function login() {
-        const data = {
-            email: document.getElementById('login-email').value,
-            password: document.getElementById('login-pw').value
-        };
-
-        const result = await callApi('/auth/login', 'POST', data);
-        if (!result) return;
-
-        const me = await callApi('/auth/me', 'GET');
-        if (typeof me !== 'number') {
-            log('❌ 로그인은 성공했지만 내 ID 조회(/auth/me)에 실패했습니다.');
-            return;
-        }
-
-        myId = me;
-
-        document.getElementById('auth-section').classList.add('hidden');
-        document.getElementById('main-section').classList.remove('hidden');
-        document.getElementById('my-id-display').innerText = myId;
-        document.getElementById('user-name-display').innerText = data.email;
-
-        log(`로그인 성공! (My ID: ${myId})`);
-    }
-
-    function logout() {
-        accessToken = null;
-        myId = null;
-        location.reload();
-    }
-
-    // --- 2. 회원 기능 함수 ---
-    async function searchMember() {
-        const keyword = document.getElementById('search-keyword').value;
-        const data = await callApi(`/member/${keyword}`, 'GET');
-
-        const list = document.getElementById('search-results');
-        list.innerHTML = '';
-        document.getElementById('path-display').classList.add('hidden'); // 기존 경로 숨김
-
-        if (data && data.length > 0) {
-            data.forEach(member => {
-                const isMe = (member.id === myId);
-
-                let buttonsHtml = '';
-                if (!isMe) {
-                    buttonsHtml = `
-                            <div class="row" style="gap:5px;">
-                                <button onclick="followUser(${member.id})" style="font-size:12px; padding:5px;">팔로우</button>
-                                <button class="path-btn" onclick="checkPath(${member.id}, '${member.name}')" style="font-size:12px; padding:5px;">경로 확인</button>
-                            </div>
-                        `;
-                } else {
-                    buttonsHtml = '<span style="color:blue; font-weight:bold;">(나)</span>';
-                }
-
-                const div = document.createElement('div');
-                div.className = 'result-item';
-                div.innerHTML = `
-                        <div>
-                            <strong>${member.name}</strong> (${member.majorName}, ${member.admissionYear})<br>
-                            <small>${member.email}</small>
-                        </div>
-                        <div>
-                            ${buttonsHtml}
-                        </div>
-                    `;
-                list.appendChild(div);
-            });
-        } else {
-            list.innerHTML = '<p>검색 결과가 없습니다.</p>';
-        }
-    }
-
-    async function followUser(targetId) {
-        if (!confirm(`정말 팔로우 하시겠습니까? (ID: ${targetId})`)) return;
-        await callApi(`/member/me/follow/${targetId}`, 'POST');
-        alert("팔로우 성공!");
-    }
-
-    // [추가된 기능] 최단 경로 확인
-    async function checkPath(targetId, targetName) {
-        const pathDiv = document.getElementById('path-display');
-        pathDiv.innerHTML = '경로 계산 중... ⏳';
-        pathDiv.classList.remove('hidden');
-
-        // API 호출: /api/member/me/path?endId={targetId}
-        const data = await callApi(`/member/me/path?endId=${targetId}`, 'GET');
-
-        if (data && Array.isArray(data) && data.length > 0) {
-            // 경로 시각화 (A -> B -> C)
-            const names = data.map(m => m.name).join(' ➡️ ');
-            pathDiv.innerHTML = `🚀 최단 경로: <br>${names} <br><small>(총 ${data.length - 1}단계)</small>`;
-        } else {
-            pathDiv.innerHTML = `🚫 ${targetName}님과는 연결된 경로가 없습니다.`;
-        }
-    }
-
-    // --- 공통 유틸 ---
-    async function callApi(endpoint, method, body = null) {
-        const headers = { 'Content-Type': 'application/json' };
-        // SecurityConfig에서 permitAll() 했으면 없어도 되지만, 혹시 모르니 넣음
-        if (accessToken) headers['Authorization'] = `Bearer ${accessToken}`;
-
-        const options = { method, headers };
         if (body && method !== 'GET') options.body = JSON.stringify(body);
-
-        log(`[${method}] ${endpoint} 요청 중...`);
 
         try {
             const res = await fetch(API_BASE + endpoint, options);
             const text = await res.text();
-            let result = null;
-
+            let json = null;
             try {
-                result = JSON.parse(text);
-            } catch (e) {
-                result = text;
+                json = text ? JSON.parse(text) : null;
+            } catch (_) {
+                json = text;
             }
-
-            if (res.ok) {
-                log(`✅ 성공: ${JSON.stringify(result, null, 2)}`);
-                return result;
-            } else {
-                log(`❌ 실패: ${text}`); // 에러 메시지 그대로 출력
-                return null; // 실패 시 null 반환
+            if (!res.ok) {
+                const msg = typeof json === 'string' ? json : JSON.stringify(json);
+                log(`❌ ${method} ${endpoint}\n${msg}`);
+                return null;
             }
-        } catch (err) {
-            log(`🔥 네트워크 에러: ${err}`);
-            alert("서버와 통신할 수 없습니다.");
+            log(`✅ ${method} ${endpoint}\n${JSON.stringify(json, null, 2)}`);
+            return json;
+        } catch (e) {
+            log(`❌ 네트워크 오류: ${e.message}`);
             return null;
         }
     }
 
-    function log(msg) {
-        const logBox = document.getElementById('api-log');
-        logBox.innerText = msg;
-        console.log(msg);
+    async function sendEmailCode() {
+        const email = document.getElementById('signup-email').value;
+        await callApi('/auth/email/send', 'POST', { email });
     }
+
+    async function verifyEmailCode() {
+        const email = document.getElementById('signup-email').value;
+        const code = document.getElementById('signup-code').value;
+        await callApi('/auth/email/verify', 'POST', { email, code });
+    }
+
+    async function signup() {
+        const password = document.getElementById('signup-password').value;
+        const confirm = document.getElementById('signup-password-confirm').value;
+
+        if (password !== confirm) {
+            alert('비밀번호와 비밀번호 재입력이 일치하지 않습니다.');
+            return;
+        }
+
+        const payload = {
+            email: document.getElementById('signup-email').value,
+            password,
+            name: document.getElementById('signup-name').value,
+            admissionYear: Number(document.getElementById('signup-year').value),
+            college: document.getElementById('signup-college').value,
+            majorName: document.getElementById('signup-major').value,
+            instagramId: document.getElementById('signup-instagram').value || null,
+            bio: document.getElementById('signup-bio').value || null
+        };
+
+        const result = await callApi('/auth/signup', 'POST', payload);
+        if (result) {
+            alert('회원가입이 완료되었습니다. 로그인 페이지로 이동합니다.');
+            showPage('login-page');
+        }
+    }
+
+    async function login() {
+        const email = document.getElementById('login-email').value;
+        const password = document.getElementById('login-password').value;
+
+        const ok = await callApi('/auth/login', 'POST', { email, password });
+        if (!ok) return;
+
+        meId = await callApi('/auth/me', 'GET');
+        if (!meId) return;
+
+        document.getElementById('guest-actions').classList.add('hidden');
+        document.getElementById('main-title').textContent = `메인 화면 (내 ID: ${meId})`;
+        showPage('main-page');
+    }
+
+    async function logout() {
+        await callApi('/auth/logout', 'POST');
+        meId = null;
+        meProfile = null;
+        document.getElementById('guest-actions').classList.remove('hidden');
+        showPage('intro-page');
+    }
+
+    async function searchMembers() {
+        const name = document.getElementById('search-input').value.trim();
+        if (!name) return;
+
+        const users = await callApi(`/member/${encodeURIComponent(name)}`, 'GET');
+        const resultArea = document.getElementById('search-result-area');
+        const list = document.getElementById('search-result-list');
+        const empty = document.getElementById('search-empty');
+
+        resultArea.classList.remove('hidden');
+        list.innerHTML = '';
+        empty.classList.add('hidden');
+
+        if (!users || users.length === 0) {
+            empty.classList.remove('hidden');
+            return;
+        }
+
+        users.forEach(user => {
+            const card = document.createElement('article');
+            card.className = 'user-card';
+            card.innerHTML = `
+                <div>
+                    <strong>${user.name}</strong>
+                    <div><small>${user.admissionYear}학번 · ${user.majorName}</small></div>
+                </div>
+                <button class="btn-outline">상세 보기</button>
+            `;
+            card.onclick = () => openUserDetail(user);
+            list.appendChild(card);
+        });
+    }
+
+    function openUserDetail(user) {
+        const detail = document.getElementById('detail-content');
+        const pathResult = document.getElementById('path-result');
+        pathResult.innerHTML = '';
+
+        detail.innerHTML = `
+            <p><b>이름:</b> ${user.name}</p>
+            <p><b>학교 웹 메일:</b> ${user.email}</p>
+            <p><b>학번:</b> ${user.admissionYear}</p>
+            <p><b>소속단과대학:</b> ${user.college ?? '-'}</p>
+            <p><b>소속학과:</b> ${user.majorName ?? '-'}</p>
+            <p><b>인스타그램:</b> ${user.instagramId ?? '-'}</p>
+            <p><b>자기소개:</b> ${user.bio ?? '-'}</p>
+        `;
+
+        const followBtn = document.getElementById('follow-btn');
+        const pathBtn = document.getElementById('path-btn');
+
+        const isMe = user.id === meId;
+        followBtn.disabled = isMe;
+        pathBtn.disabled = isMe;
+
+        followBtn.onclick = async () => {
+            const res = await callApi(`/member/me/follow/${user.id}`, 'POST');
+            if (res) alert('팔로우 요청을 전송했습니다.');
+        };
+
+        pathBtn.onclick = async () => {
+            const path = await callApi(`/member/me/path?endId=${user.id}`, 'GET');
+            if (!path || path.length === 0) {
+                pathResult.textContent = '경로가 없습니다.';
+                return;
+            }
+            pathResult.textContent = `탐색 경로: ${path.map(node => node.name).join(' → ')}`;
+        };
+
+        document.getElementById('detail-modal').classList.remove('hidden');
+    }
+
+    function closeModal() {
+        document.getElementById('detail-modal').classList.add('hidden');
+    }
+
+    async function showMyInfo() {
+        if (!meId) return;
+        meProfile = {
+            id: meId,
+            name: '현재 로그인 사용자',
+            email: '-',
+            admissionYear: '-',
+            college: '-',
+            majorName: '-',
+            instagramId: '-',
+            bio: '내 정보 상세 API 연동 전입니다.'
+        };
+        openUserDetail(meProfile);
+    }
+
+    async function showFollowRequests() {
+        const data = await callApi('/member/me/follow-requests', 'GET');
+        if (!data) return;
+
+        const requests = data.data || [];
+        if (requests.length === 0) {
+            alert('대기 중인 팔로우 요청이 없습니다.');
+            return;
+        }
+
+        const names = requests.map(user => `${user.name} (${user.admissionYear}, ${user.majorName})`).join('\n');
+        alert(`대기 중인 요청\n${names}`);
+    }
+
+    showPage('intro-page');
 </script>
 </body>
 </html>
