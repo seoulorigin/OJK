@@ -129,7 +129,24 @@
         .search-box input { font-size: 16px; padding: 14px; }
         .search-box button { padding: 14px 18px; }
 
-        .result-grid { display: grid; gap: 12px; margin-top: 14px; }
+        .result-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 14px; }
+
+        .result-actions { display: flex; gap: 8px; }
+
+        .mini-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        .mini-table th, .mini-table td {
+            border: 1px solid var(--border);
+            padding: 8px;
+            text-align: left;
+            font-size: 13px;
+        }
+
+        .mini-table th { background: #f9fafb; }
 
         .user-card {
             border: 1px solid var(--border);
@@ -157,7 +174,7 @@
         }
 
         .modal-content {
-            width: min(680px, 100%);
+            width: min(760px, 100%);
             max-height: 90vh;
             overflow-y: auto;
             background: #fff;
@@ -165,14 +182,7 @@
             padding: 22px;
         }
 
-        .mono {
-            background: #0b1220;
-            color: #8ef7bf;
-            border-radius: 10px;
-            padding: 10px;
-            font-size: 12px;
-            white-space: pre-wrap;
-        }
+
     </style>
 </head>
 <body>
@@ -295,6 +305,8 @@
             <div class="actions">
                 <button class="btn-outline" onclick="showMyInfo()">내 정보</button>
                 <button class="btn-outline" onclick="showFollowRequests()">팔로우 요청 확인</button>
+                <button class="btn-outline" onclick="showFollowers()">팔로워 목록</button>
+                <button class="btn-outline" onclick="showFollowing()">팔로잉 목록</button>
                 <button class="btn-danger" onclick="logout()">로그아웃</button>
             </div>
         </div>
@@ -311,9 +323,10 @@
         </div>
     </section>
 
-    <section class="section">
-        <h3>API 로그</h3>
-        <pre id="api-log" class="mono">대기 중...</pre>
+    <section id="path-users-section" class="section hidden">
+        <h3>경로에 있는 사용자 카드</h3>
+        <div id="path-users-list" class="result-grid"></div>
+        <div id="path-users-empty" class="empty">아직 경로 탐색 결과가 없습니다.</div>
     </section>
 </main>
 
@@ -322,23 +335,37 @@
         <h3>사용자 상세 정보</h3>
         <div id="detail-content"></div>
         <div class="actions" style="margin-top: 16px;">
-            <button class="btn-primary" id="follow-btn">팔로우 요청</button>
-            <button class="btn-secondary" id="path-btn">경로 탐색</button>
             <button class="btn-outline" onclick="closeModal()">닫기</button>
         </div>
-        <div id="path-result" class="field" style="margin-top: 14px;"></div>
+    </div>
+</div>
+
+<div id="follow-request-modal" class="modal hidden">
+    <div class="modal-content">
+        <h3>팔로우 요청 확인</h3>
+        <div id="follow-request-list"></div>
+        <div class="actions" style="margin-top: 16px;">
+            <button class="btn-outline" onclick="closeFollowRequestModal()">닫기</button>
+        </div>
+    </div>
+</div>
+
+<div id="member-list-modal" class="modal hidden">
+    <div class="modal-content">
+        <h3 id="member-list-title">목록</h3>
+        <div id="member-list-body"></div>
+        <div class="actions" style="margin-top: 16px;">
+            <button class="btn-outline" onclick="closeMemberListModal()">닫기</button>
+        </div>
     </div>
 </div>
 
 <script>
     const API_BASE = `${window.location.origin}/api`;
+    const INACTIVITY_LIMIT_MS = 30 * 60 * 1000;
     let meId = null;
     let meProfile = null;
-
-    function log(message) {
-        document.getElementById('api-log').textContent = message;
-        console.log(message);
-    }
+    let inactivityTimer = null;
 
     function showPage(pageId) {
         ['intro-page', 'login-page', 'signup-page', 'main-page'].forEach(id => {
@@ -347,10 +374,26 @@
         document.getElementById(pageId).classList.remove('hidden');
     }
 
+    function resetInactivityTimer() {
+        if (!meId) return;
+        clearTimeout(inactivityTimer);
+        inactivityTimer = setTimeout(async () => {
+            alert('일정 시간 활동이 없어 자동 로그아웃됩니다.');
+            await logout(true);
+        }, INACTIVITY_LIMIT_MS);
+    }
+
+    function bindActivityEvents() {
+        ['click', 'keydown', 'mousemove', 'touchstart', 'scroll'].forEach(eventName => {
+            window.addEventListener(eventName, resetInactivityTimer, { passive: true });
+        });
+    }
+
     async function callApi(endpoint, method = 'GET', body) {
         const options = {
             method,
-            headers: { 'Content-Type': 'application/json' }
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include'
         };
         if (body && method !== 'GET') options.body = JSON.stringify(body);
 
@@ -364,27 +407,69 @@
                 json = text;
             }
             if (!res.ok) {
-                const msg = typeof json === 'string' ? json : JSON.stringify(json);
-                log(`❌ ${method} ${endpoint}\n${msg}`);
+                if (res.status === 401) await clearSessionUi();
                 return null;
             }
-            log(`✅ ${method} ${endpoint}\n${JSON.stringify(json, null, 2)}`);
             return json;
-        } catch (e) {
-            log(`❌ 네트워크 오류: ${e.message}`);
+        } catch (_) {
             return null;
         }
     }
 
+    function createUserCard(user, options = {}) {
+        const card = document.createElement('article');
+        card.className = 'user-card';
+
+        const actions = [];
+        if (options.onDetail) actions.push('<button class="btn-outline detail-btn">상세 보기</button>');
+        if (options.onPath) actions.push('<button class="btn-secondary path-btn">경로 탐색</button>');
+        if (options.onFollow) actions.push('<button class="btn-primary follow-btn">팔로우 요청</button>');
+
+        card.innerHTML = `
+            <div>
+                <strong>${user.name}</strong>
+                <div><small>${user.admissionYear ?? '-'}학번 · ${user.majorName ?? '-'}</small></div>
+            </div>
+            <div class="result-actions">${actions.join('')}</div>
+        `;
+
+        const detailBtn = card.querySelector('.detail-btn');
+        const pathBtn = card.querySelector('.path-btn');
+        const followBtn = card.querySelector('.follow-btn');
+        const isMe = user.id === meId;
+
+        if (detailBtn) detailBtn.onclick = () => options.onDetail(user);
+        if (pathBtn) {
+            pathBtn.disabled = isMe;
+            pathBtn.onclick = () => options.onPath(user);
+        }
+        if (followBtn) {
+            followBtn.disabled = isMe;
+            followBtn.onclick = () => options.onFollow(user);
+        }
+        return card;
+    }
+
+    async function refreshMainHeader() {
+        const myInfo = await callApi('/member/me', 'GET');
+        if (!myInfo) return false;
+        meProfile = myInfo;
+        meId = myInfo.id;
+        document.getElementById('main-title').textContent = `반갑습니다 ${myInfo.name}님!`;
+        return true;
+    }
+
     async function sendEmailCode() {
         const email = document.getElementById('signup-email').value;
-        await callApi('/auth/email/send', 'POST', { email });
+        const result = await callApi('/auth/email/send', 'POST', { email });
+        if (result) alert('인증번호를 발송했습니다.');
     }
 
     async function verifyEmailCode() {
         const email = document.getElementById('signup-email').value;
         const code = document.getElementById('signup-code').value;
-        await callApi('/auth/email/verify', 'POST', { email, code });
+        const result = await callApi('/auth/email/verify', 'POST', { email, code });
+        if (result) alert('인증이 완료되었습니다.');
     }
 
     async function signup() {
@@ -423,16 +508,29 @@
 
         meId = loginMemberId;
         document.getElementById('guest-actions').classList.add('hidden');
-        document.getElementById('main-title').textContent = `메인 화면 (내 ID: ${meId})`;
         showPage('main-page');
+        await refreshMainHeader();
+        resetInactivityTimer();
     }
 
-    async function logout() {
-        await callApi('/auth/logout', 'POST');
+    async function clearSessionUi() {
         meId = null;
         meProfile = null;
+        clearTimeout(inactivityTimer);
         document.getElementById('guest-actions').classList.remove('hidden');
+        closeModal();
+        closeFollowRequestModal();
+        closeMemberListModal();
         showPage('intro-page');
+    }
+
+    async function logout(isAuto = false) {
+        if (!isAuto) {
+            await callApi('/auth/logout', 'POST');
+        } else {
+            await fetch(API_BASE + '/auth/logout', { method: 'POST', credentials: 'include' });
+        }
+        await clearSessionUi();
     }
 
     async function searchMembers() {
@@ -454,25 +552,17 @@
         }
 
         users.forEach(user => {
-            const card = document.createElement('article');
-            card.className = 'user-card';
-            card.innerHTML = `
-                <div>
-                    <strong>${user.name}</strong>
-                    <div><small>${user.admissionYear}학번 · ${user.majorName}</small></div>
-                </div>
-                <button class="btn-outline">상세 보기</button>
-            `;
-            card.onclick = () => openUserDetail(user);
+            const card = createUserCard(user, {
+                onDetail: openUserDetail,
+                onFollow: requestFollow,
+                onPath: searchPathForUser
+            });
             list.appendChild(card);
         });
     }
 
     function openUserDetail(user) {
         const detail = document.getElementById('detail-content');
-        const pathResult = document.getElementById('path-result');
-        pathResult.innerHTML = '';
-
         detail.innerHTML = `
             <p><b>이름:</b> ${user.name}</p>
             <p><b>학교 웹 메일:</b> ${user.email}</p>
@@ -483,28 +573,41 @@
             <p><b>자기소개:</b> ${user.bio ?? '-'}</p>
         `;
 
-        const followBtn = document.getElementById('follow-btn');
-        const pathBtn = document.getElementById('path-btn');
-
-        const isMe = user.id === meId;
-        followBtn.disabled = isMe;
-        pathBtn.disabled = isMe;
-
-        followBtn.onclick = async () => {
-            const res = await callApi(`/member/me/follow/${user.id}`, 'POST');
-            if (res) alert('팔로우 요청을 전송했습니다.');
-        };
-
-        pathBtn.onclick = async () => {
-            const path = await callApi(`/member/me/path?endId=${user.id}`, 'GET');
-            if (!path || path.length === 0) {
-                pathResult.textContent = '경로가 없습니다.';
-                return;
-            }
-            pathResult.textContent = `탐색 경로: ${path.map(node => node.name).join(' → ')}`;
-        };
-
         document.getElementById('detail-modal').classList.remove('hidden');
+    }
+
+    async function requestFollow(user) {
+        const res = await callApi(`/member/me/follow/${user.id}`, 'POST');
+        if (res) alert('팔로우 요청을 전송했습니다.');
+    }
+
+    async function searchPathForUser(user) {
+        const path = await callApi(`/member/me/path?endId=${user.id}`, 'GET');
+        const section = document.getElementById('path-users-section');
+        const list = document.getElementById('path-users-list');
+        const empty = document.getElementById('path-users-empty');
+
+        section.classList.remove('hidden');
+        list.innerHTML = '';
+
+        if (!path || path.length === 0) {
+            empty.classList.remove('hidden');
+            return;
+        }
+
+        const filtered = path.filter(node => node.id !== meId);
+        if (filtered.length === 0) {
+            empty.classList.remove('hidden');
+            empty.textContent = '경로에 본인을 제외한 사용자가 없습니다.';
+            return;
+        }
+
+        empty.classList.add('hidden');
+        empty.textContent = '아직 경로 탐색 결과가 없습니다.';
+        filtered.forEach(node => {
+            const card = createUserCard(node, { onDetail: openUserDetail });
+            list.appendChild(card);
+        });
     }
 
     function closeModal() {
@@ -512,18 +615,10 @@
     }
 
     async function showMyInfo() {
-        if (!meId) return;
-        meProfile = {
-            id: meId,
-            name: '현재 로그인 사용자',
-            email: '-',
-            admissionYear: '-',
-            college: '-',
-            majorName: '-',
-            instagramId: '-',
-            bio: '내 정보 상세 API 연동 전입니다.'
-        };
-        openUserDetail(meProfile);
+        const data = await callApi('/member/me', 'GET');
+        if (!data) return;
+        meProfile = data;
+        openUserDetail(data);
     }
 
     async function showFollowRequests() {
@@ -531,16 +626,95 @@
         if (!data) return;
 
         const requests = data.data || [];
+        const list = document.getElementById('follow-request-list');
+        list.innerHTML = '';
+
         if (requests.length === 0) {
-            alert('대기 중인 팔로우 요청이 없습니다.');
+            list.innerHTML = '<div class="empty">대기 중인 팔로우 요청이 없습니다.</div>';
+        } else {
+            requests.forEach(user => {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'card';
+                wrapper.style.marginBottom = '10px';
+                wrapper.innerHTML = `
+                    <p><b>${user.name}</b> (${user.admissionYear} · ${user.majorName ?? '-'})</p>
+                    <div class="actions">
+                        <button class="btn-outline detail-btn">상세 보기</button>
+                        <button class="btn-primary approve-btn">수락</button>
+                        <button class="btn-danger reject-btn">거절</button>
+                    </div>
+                `;
+                wrapper.querySelector('.detail-btn').onclick = () => openUserDetail(user);
+                wrapper.querySelector('.approve-btn').onclick = async () => {
+                    const res = await callApi(`/member/me/follow-requests/${user.id}/approve`, 'POST');
+                    if (res) await showFollowRequests();
+                };
+                wrapper.querySelector('.reject-btn').onclick = async () => {
+                    const res = await callApi(`/member/me/follow-requests/${user.id}/reject`, 'POST');
+                    if (res) await showFollowRequests();
+                };
+                list.appendChild(wrapper);
+            });
+        }
+
+        document.getElementById('follow-request-modal').classList.remove('hidden');
+    }
+
+    function closeFollowRequestModal() {
+        document.getElementById('follow-request-modal').classList.add('hidden');
+    }
+
+    function openMemberListModal(title, members) {
+        document.getElementById('member-list-title').textContent = title;
+        const body = document.getElementById('member-list-body');
+
+        if (!members || members.length === 0) {
+            body.innerHTML = '<div class="empty">목록이 비어 있습니다.</div>';
+        } else {
+            body.innerHTML = `
+                <table class="mini-table">
+                    <thead><tr><th>이름</th><th>학번/학과</th></tr></thead>
+                    <tbody>
+                        ${members.map(m => `<tr><td>${m.name}</td><td>${m.admissionYear ?? '-'} / ${m.majorName ?? '-'}</td></tr>`).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+        document.getElementById('member-list-modal').classList.remove('hidden');
+    }
+
+    function closeMemberListModal() {
+        document.getElementById('member-list-modal').classList.add('hidden');
+    }
+
+    async function showFollowers() {
+        const data = await callApi('/member/me/followers', 'GET');
+        if (!data) return;
+        openMemberListModal('내 팔로워 목록', data.data || []);
+    }
+
+    async function showFollowing() {
+        const data = await callApi('/member/me/following', 'GET');
+        if (!data) return;
+        openMemberListModal('내 팔로잉 목록', data.data || []);
+    }
+
+    async function bootstrapSession() {
+        const me = await callApi('/auth/me', 'GET');
+        if (typeof me !== 'number') {
+            showPage('intro-page');
             return;
         }
 
-        const names = requests.map(user => `${user.name} (${user.admissionYear}, ${user.majorName})`).join('\n');
-        alert(`대기 중인 요청\n${names}`);
+        meId = me;
+        document.getElementById('guest-actions').classList.add('hidden');
+        showPage('main-page');
+        await refreshMainHeader();
+        resetInactivityTimer();
     }
 
-    showPage('intro-page');
+    bindActivityEvents();
+    bootstrapSession();
 </script>
 </body>
 </html>
