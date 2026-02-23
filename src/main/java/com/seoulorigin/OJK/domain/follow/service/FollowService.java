@@ -71,6 +71,12 @@ public class FollowService {
         return memberRepository.findPendingFollowRequestsByMemberId(id);
     }
 
+    @Transactional(readOnly = true)
+    public List<Member> getFollowings(Long id) {
+        return memberRepository.findFollowingsById(id);
+    }
+
+
     private void validateActorOwnsAccount(Long actorId, Long accountId) {
         if (!actorId.equals(accountId)) {
             throw new BusinessException(ErrorCode.FORBIDDEN, "본인 계정으로만 수행할 수 있습니다.");

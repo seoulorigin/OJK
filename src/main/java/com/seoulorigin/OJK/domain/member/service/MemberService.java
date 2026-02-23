@@ -71,6 +71,12 @@ public class MemberService {
         return path;
     }
 
+    @Transactional
+    public Member getMember(Long memberId) {
+        return memberRepository.findById(memberId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+    }
+
     private void validatePasswordPolicy(String rawPassword) {
         if (!PASSWORD_POLICY.matcher(rawPassword).matches()) {
             throw new BusinessException(ErrorCode.INVALID_PASSWORD_POLICY);

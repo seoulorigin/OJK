@@ -97,4 +97,29 @@ public class FollowController {
                 .toList();
         return ResponseEntity.ok(ApiResponse.success("팔로우 요청 목록 조회 성공", responses));
     }
+
+    @GetMapping("/{id}/following")
+    public ResponseEntity<ApiResponse<List<MemberResponse>>> getFollowingList(@PathVariable Long id) {
+        List<Member> members = followService.getFollowings(id);
+        List<MemberResponse> responses = members.stream().map(MemberResponse::from).toList();
+        return ResponseEntity.ok(ApiResponse.success("팔로잉 목록 조회 성공", responses));
+    }
+
+    @GetMapping("/me/followers")
+    public ResponseEntity<ApiResponse<List<MemberResponse>>> getMyFollowerList(HttpSession session) {
+        Long actorId = authService.getCurrentMemberId(session);
+        List<MemberResponse> responses = followService.getFollowers(actorId).stream()
+                .map(MemberResponse::from)
+                .toList();
+        return ResponseEntity.ok(ApiResponse.success("내 팔로워 목록 조회 성공", responses));
+    }
+
+    @GetMapping("/me/following")
+    public ResponseEntity<ApiResponse<List<MemberResponse>>> getMyFollowingList(HttpSession session) {
+        Long actorId = authService.getCurrentMemberId(session);
+        List<MemberResponse> responses = followService.getFollowings(actorId).stream()
+                .map(MemberResponse::from)
+                .toList();
+        return ResponseEntity.ok(ApiResponse.success("내 팔로잉 목록 조회 성공", responses));
+    }
 }

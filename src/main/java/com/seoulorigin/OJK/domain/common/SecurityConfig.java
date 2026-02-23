@@ -60,7 +60,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET,
                                 "/api/member/{name}",
                                 "/api/member/path",
-                                "/api/member/{id}/followers"
+                                "/api/member/{id}/followers",
+                                "/api/member/{id}/following"
                         ).permitAll()
 
                         // 세션 필요: 현재 사용자 기준 API

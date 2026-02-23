@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+
 @RestController
 @RequestMapping("/api/member")
 @RequiredArgsConstructor
@@ -42,6 +43,12 @@ public class MemberController {
                 .map(MemberPathNodeResponse::from)
                 .toList();
         return ResponseEntity.ok(responses);
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<MemberResponse> findMyInfo(HttpSession session) {
+        Long memberId = authService.getCurrentMemberId(session);
+        return ResponseEntity.ok(MemberResponse.from(memberService.getMember(memberId)));
     }
 
     @GetMapping("/me/path")
