@@ -30,7 +30,7 @@ public class AuthService {
     }
 
     @Transactional
-    public void login(LoginRequest request, HttpSession session) {
+    public Long login(LoginRequest request, HttpSession session) {
         Member member = memberRepository.findByEmail(request.email())
                 .orElseThrow(() -> new BusinessException(ErrorCode.INVALID_CREDENTIALS));
 
@@ -40,6 +40,8 @@ public class AuthService {
         session.setAttribute(SESSION_MEMBER_ID, member.getId());
         session.setAttribute(SESSION_MEMBER_EMAIL, member.getEmail());
         session.setMaxInactiveInterval(60 * 60);
+
+        return member.getId();
     }
 
     public void logout(HttpSession session) {
