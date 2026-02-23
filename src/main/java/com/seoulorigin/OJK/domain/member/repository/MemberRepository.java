@@ -45,9 +45,10 @@ public interface MemberRepository extends Neo4jRepository<Member, Long> {
             "RETURN follower, b, r, mj")
     List<Member> findFollowersById(@Param("memberId") Long memberId);
 
-    @Query("MATCH (me:Member)-[:FOLLOWS]->(following:Member) " +
+    @Query("MATCH (me:Member)-[r:FOLLOWS]->(following:Member) " +
             "WHERE id(me) = $memberId " +
-            "RETURN following")
+            "OPTIONAL MATCH (following)-[b:BELONGS_TO]->(mj:Major) " +
+            "RETURN following, r, b, mj")
     List<Member> findFollowingsById(@Param("memberId") Long memberId);
 
     @Query("MATCH (from:Member)-[r:FOLLOWS]->(to:Member) " +
