@@ -14,6 +14,7 @@ public enum ErrorCode {
     INVALID_CREDENTIALS(HttpStatus.BAD_REQUEST, "AUTH_400_1", "이메일 또는 비밀번호가 올바르지 않습니다."),
     MEMBER_NOT_FOUND(HttpStatus.BAD_REQUEST, "MEMBER_400_1", "사용자를 찾을 수 없습니다."),
     EMAIL_NOT_VERIFIED(HttpStatus.BAD_REQUEST, "AUTH_400_2", "이메일 인증이 필요합니다."),
+    EMAIL_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, "AUTH_400_4", "이미 가입된 이메일입니다."),
     INVALID_PASSWORD_POLICY(HttpStatus.BAD_REQUEST, "AUTH_400_3", "비밀번호 정책을 만족하지 않습니다."),
     FOLLOW_SELF_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "FOLLOW_400_1", "자기 자신을 팔로우할 수 없습니다."),
     FOLLOW_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, "FOLLOW_400_2", "이미 팔로우 중입니다."),

@@ -31,6 +31,10 @@ public class MemberService {
         if (!verificationStore.isVerified(request.email()))
             throw new BusinessException(ErrorCode.EMAIL_NOT_VERIFIED);
 
+        if (memberRepository.findByEmail(request.email()).isPresent()) {
+            throw new BusinessException(ErrorCode.EMAIL_ALREADY_EXISTS);
+        }
+
         validatePasswordPolicy(request.password());
 
         Member member = new Member();
