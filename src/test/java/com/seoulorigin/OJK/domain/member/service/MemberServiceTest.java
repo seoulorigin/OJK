@@ -64,11 +64,27 @@ class MemberServiceTest {
                 "test@seoul.ac.kr", "weak", "tester", 23, "Engineering", "CS", "insta", "bio");
 
         when(verificationStore.isVerified(request.email())).thenReturn(true);
+        when(memberRepository.findByEmail(request.email())).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> memberService.signup(request))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.INVALID_PASSWORD_POLICY);
+    }
+
+
+    @Test
+    void signup_이미가입된이메일이면예외() {
+        MemberSignupRequest request = new MemberSignupRequest(
+                "test@seoul.ac.kr", "Aa123456!", "tester", 23, "Engineering", "CS", "insta", "bio");
+
+        when(verificationStore.isVerified(request.email())).thenReturn(true);
+        when(memberRepository.findByEmail(request.email())).thenReturn(Optional.of(new Member()));
+
+        assertThatThrownBy(() -> memberService.signup(request))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.EMAIL_ALREADY_EXISTS);
     }
 
     @Test
@@ -79,6 +95,7 @@ class MemberServiceTest {
         Major major = new Major("CS", "Engineering");
 
         when(verificationStore.isVerified(request.email())).thenReturn(true);
+        when(memberRepository.findByEmail(request.email())).thenReturn(Optional.empty());
         when(passwordEncoder.encode(request.password())).thenReturn("encoded-password");
         when(majorRepository.findByMajorName("CS")).thenReturn(Optional.of(major));
         when(memberRepository.save(org.mockito.ArgumentMatchers.any(Member.class)))
