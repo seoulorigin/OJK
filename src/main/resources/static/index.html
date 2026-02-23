@@ -130,6 +130,7 @@
         .search-box button { padding: 14px 18px; }
 
         .result-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 14px; }
+        .path-list { grid-template-columns: 1fr; }
 
         .result-actions { display: flex; gap: 8px; }
 
@@ -182,6 +183,8 @@
             padding: 22px;
         }
 
+        #detail-modal { z-index: 50; }
+        #follow-request-modal { z-index: 40; }
 
     </style>
 </head>
@@ -325,7 +328,7 @@
 
     <section id="path-users-section" class="section hidden">
         <h3>경로에 있는 사용자 카드</h3>
-        <div id="path-users-list" class="result-grid"></div>
+        <div id="path-users-list" class="result-grid path-list"></div>
         <div id="path-users-empty" class="empty">아직 경로 탐색 결과가 없습니다.</div>
     </section>
 </main>
@@ -374,11 +377,7 @@
         document.getElementById(pageId).classList.remove('hidden');
 
         const pathSection = document.getElementById('path-users-section');
-        if (pageId === 'main-page') {
-            pathSection.classList.remove('hidden');
-        } else {
-            pathSection.classList.add('hidden');
-        }
+        pathSection.classList.add('hidden');
     }
 
     function resetInactivityTimer() {
@@ -423,6 +422,25 @@
         }
     }
 
+    function getMajorName(user) {
+        return user.majorName ?? user.major ?? user.departmentName ?? '-';
+    }
+
+    function resetMainHomeState() {
+        document.getElementById('search-input').value = '';
+        document.getElementById('search-result-list').innerHTML = '';
+        document.getElementById('search-result-area').classList.add('hidden');
+        document.getElementById('search-empty').classList.add('hidden');
+
+        const pathSection = document.getElementById('path-users-section');
+        const pathList = document.getElementById('path-users-list');
+        const pathEmpty = document.getElementById('path-users-empty');
+        pathSection.classList.add('hidden');
+        pathList.innerHTML = '';
+        pathEmpty.classList.remove('hidden');
+        pathEmpty.textContent = '아직 경로 탐색 결과가 없습니다.';
+    }
+
     function createUserCard(user, options = {}) {
         const card = document.createElement('article');
         card.className = 'user-card';
@@ -435,7 +453,7 @@
         card.innerHTML = `
             <div>
                 <strong>${user.name}</strong>
-                <div><small>${user.admissionYear ?? '-'}학번 · ${user.majorName ?? '-'}</small></div>
+                <div><small>${options.orderLabel ? options.orderLabel + ' · ' : ''}${user.admissionYear ?? '-'}학번 · ${getMajorName(user)}</small></div>
             </div>
             <div class="result-actions">${actions.join('')}</div>
         `;
@@ -515,6 +533,7 @@
 
         meId = loginMemberId;
         document.getElementById('guest-actions').classList.add('hidden');
+        resetMainHomeState();
         showPage('main-page');
         await refreshMainHeader();
         resetInactivityTimer();
@@ -528,6 +547,7 @@
         closeModal();
         closeFollowRequestModal();
         closeMemberListModal();
+        resetMainHomeState();
         showPage('intro-page');
     }
 
@@ -548,6 +568,8 @@
         const resultArea = document.getElementById('search-result-area');
         const list = document.getElementById('search-result-list');
         const empty = document.getElementById('search-empty');
+
+        document.getElementById('path-users-section').classList.add('hidden');
 
         resultArea.classList.remove('hidden');
         list.innerHTML = '';
@@ -593,6 +615,7 @@
             <p><b>자기소개:</b> ${detailUser.bio ?? '-'}</p>
         `;
 
+        closeFollowRequestModal();
         document.getElementById('detail-modal').classList.remove('hidden');
     }
 
@@ -624,8 +647,11 @@
 
         empty.classList.add('hidden');
         empty.textContent = '아직 경로 탐색 결과가 없습니다.';
-        filtered.forEach(node => {
-            const card = createUserCard(node, { onDetail: openUserDetail });
+        filtered.forEach((node, index) => {
+            const card = createUserCard(node, {
+                onDetail: openUserDetail,
+                orderLabel: `${index + 1}번째`
+            });
             list.appendChild(card);
         });
     }
@@ -657,7 +683,7 @@
                 wrapper.className = 'card';
                 wrapper.style.marginBottom = '10px';
                 wrapper.innerHTML = `
-                    <p><b>${user.name}</b> (${user.admissionYear} · ${user.majorName ?? '-'})</p>
+                    <p><b>${user.name}</b> (${user.admissionYear} · ${getMajorName(user)})</p>
                     <div class="actions">
                         <button class="btn-outline detail-btn">상세 보기</button>
                         <button class="btn-primary approve-btn">수락</button>
@@ -695,7 +721,7 @@
                 <table class="mini-table">
                     <thead><tr><th>이름</th><th>학번/학과</th></tr></thead>
                     <tbody>
-                        ${members.map(m => `<tr><td>${m.name}</td><td>${m.admissionYear ?? '-'} / ${m.majorName ?? '-'}</td></tr>`).join('')}
+                        ${members.map(m => `<tr><td>${m.name}</td><td>${m.admissionYear ?? '-'} / ${getMajorName(m)}</td></tr>`).join('')}
                     </tbody>
                 </table>
             `;
@@ -728,6 +754,7 @@
 
         meId = me;
         document.getElementById('guest-actions').classList.add('hidden');
+        resetMainHomeState();
         showPage('main-page');
         await refreshMainHeader();
         resetInactivityTimer();
